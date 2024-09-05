@@ -5,3 +5,4 @@ supabase
 uvicorn
 gunicorn
 python-multipart
+msal

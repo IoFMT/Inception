@@ -2,6 +2,7 @@
 """
     Main file to run the API
 """
+import json
 from time import time
 
 import uvicorn
@@ -14,6 +15,8 @@ from fastapi.responses import FileResponse
 from routers import security_router
 from entities.search import SearchTerm
 from entities.template import Template
+
+from services import dataverse as sv_dataverse
 
 
 app = FastAPI(title="IOFMT REST API")
@@ -62,6 +65,20 @@ async def get_retrieve_template(
     return {"TemplateID": template_id}
 
 
+@app.get("/list", tags=["Version 1"])
+async def get_list_dataverse(
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+):
+    session, token = sv_dataverse.getAuthenticatedSession()
+
+    if session:
+        data = sv_dataverse.retrieve_data(session, token)
+
+    return {"data": data}
+
+
 @app.post("/save", tags=["Version 1"])
 async def post_save_template(
     template: Template,
@@ -69,7 +86,11 @@ async def post_save_template(
         security_router.get_api_key
     ),
 ):
-    return {"TemplateID": json.load(template)}
+    session, token = sv_dataverse.getAuthenticatedSession()
+
+    if session:
+        data = sv_dataverse.save_data(session, token, template.model_dump_json())
+    return {"Template": data}
 
 
 if __name__ == "__main__":

@@ -4,5 +4,5 @@ from pydantic import BaseModel
 
 
 class Template(BaseModel):
-    template_id: int
-    template_title: str
+    cr17a_id: str
+    cr17a_name: str
