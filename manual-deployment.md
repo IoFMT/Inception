@@ -21,7 +21,7 @@ This document describes how to deploy a Python API to Azure App Service.
 2. Create a resource group
 
 ```bash
- az group create --name inception-api-rg --location eastus
+ az group create --name inception-api-rg --location eastus2
 ```
 
 3. Create an Azure Container Registry
