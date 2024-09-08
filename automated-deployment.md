@@ -43,7 +43,7 @@ First you need to creata a credential.json file
 {
   "name": "iofmtapi-cr",
   "issuer": "https://token.actions.githubusercontent.com",
-  "subject": "repo:iofmt/inception:ref:refs/heads/main",
+  "subject": "repo:IoFMT/Inception:ref:refs/heads/main",
   "description": "Testing",
   "audiences": [
     "api://AzureADTokenExchange"

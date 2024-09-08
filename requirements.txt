@@ -6,3 +6,5 @@ uvicorn
 gunicorn
 python-multipart
 msal
+pytest
+pytest-mock
