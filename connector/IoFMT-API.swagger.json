@@ -1,0 +1,237 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is a rest API for the IoFMT project",
+    "title": "IoFMT REST API",
+    "version": "0.1.0",
+    "x-logo": {
+      "url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png"
+    }
+  },
+  "host": "iofmtapi.azurewebsites.net",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [],
+  "produces": [],
+  "securityDefinitions": {
+    "APIKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "X-Access-Token"
+    }
+  },
+  "paths": {
+    "/": {
+      "get": {
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {}
+          }
+        },
+        "security": [],
+        "tags": [
+          "Version 1"
+        ],
+        "operationId": "get_root__get",
+        "summary": "Get Root"
+      }
+    },
+    "/list": {
+      "get": {
+        "parameters": [],
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Version 1"
+        ],
+        "operationId": "get_list_dataverse_list_get",
+        "summary": "Get List Dataverse"
+      }
+    },
+    "/retrieve/{template_id}": {
+      "get": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "template_id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {}
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "tags": [
+          "Version 1"
+        ],
+        "operationId": "get_retrieve_template_retrieve__template_id__get",
+        "summary": "Get Retrieve Template"
+      }
+    },
+    "/save": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Template"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {}
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "tags": [
+          "Version 1"
+        ],
+        "operationId": "post_save_template_save_post",
+        "summary": "Post Save Template"
+      }
+    },
+    "/search": {
+      "post": {
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SearchTerm"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {}
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "tags": [
+          "Version 1"
+        ],
+        "operationId": "get_search_search_post",
+        "summary": "Get Search"
+      }
+    }
+  },
+  "definitions": {
+    "HTTPValidationError": {
+      "properties": {
+        "detail": {
+          "items": {
+            "$ref": "#/definitions/ValidationError"
+          },
+          "title": "Detail",
+          "type": "array"
+        }
+      },
+      "title": "HTTPValidationError",
+      "type": "object"
+    },
+    "SearchTerm": {
+      "properties": {
+        "term": {
+          "title": "Term",
+          "type": "string"
+        }
+      },
+      "required": [
+        "term"
+      ],
+      "title": "SearchTerm",
+      "type": "object"
+    },
+    "Template": {
+      "properties": {
+        "cr17a_id": {
+          "title": "Cr17A Id",
+          "type": "string"
+        },
+        "cr17a_name": {
+          "title": "Cr17A Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "cr17a_id",
+        "cr17a_name"
+      ],
+      "title": "Template",
+      "type": "object"
+    },
+    "ValidationError": {
+      "properties": {
+        "loc": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Location",
+          "type": "array"
+        },
+        "msg": {
+          "title": "Message",
+          "type": "string"
+        },
+        "type": {
+          "title": "Error Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "loc",
+        "msg",
+        "type"
+      ],
+      "title": "ValidationError",
+      "type": "object"
+    }
+  },
+  "parameters": {},
+  "responses": {},
+  "tags": [],
+  "x-components": {},
+  "security": [
+    {
+      "APIKeyAuth": []
+    }
+  ]
+}

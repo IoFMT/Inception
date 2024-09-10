@@ -68,5 +68,3 @@ This document describes how to deploy a Python API to Azure App Service.
 ```bash
  az webapp update --resource-group inception-api-rg  --name iofmtapi
 ```
-
-

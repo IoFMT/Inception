@@ -66,4 +66,6 @@ Add the following to your Github Secrets on your repository:
 | AZURE_CLIENT_ID | Application (client) ID |
 | AZURE_TENANT_ID |	Directory (tenant) ID |
 | AZURE_SUBSCRIPTION_ID |	Subscription ID |
+| ENV | Environment variables to be built on docker image in base64 |
 
+<!-- TODO: add explanation on how to fill the ENV variable -->

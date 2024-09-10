@@ -14,9 +14,6 @@ jobs:
     - name: 'Checkout GitHub Action' 
       run: |
         echo ${{ secrets.ENV }} | base64 --decode > .env
-    - name: 'Show .env' 
-      run: |
-        ls -lai
     
     - name: 'Sign in via Azure CLI'
       uses: azure/login@v1
@@ -31,7 +28,6 @@ jobs:
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
     - run: |
-        ls -lai
         docker build . -t ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}
         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}     
       

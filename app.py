@@ -20,7 +20,7 @@ from entities.template import Template
 from services import dataverse as sv_dataverse
 
 
-app = FastAPI(title="IOFMT REST API")
+app = FastAPI(title="IoFMT REST API")
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
@@ -37,9 +37,9 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="IoFMT REST API",
-        version="0.1.0",
+        version="0.2.0",
         summary="This is a rest API for the IoFMT project",
-        description="Here's a longer description of the custom **OpenAPI** schema",
+        description="This is a rest API for the IoFMT project",
         routes=app.routes,
         openapi_version="3.0.2",
     )
@@ -117,3 +117,9 @@ async def post_save_template(
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# TODO: add description to the endpoints
+
+# TODO: add tags to the endpoints
+
+# TODO: review the endpoints needed and create the new ones
