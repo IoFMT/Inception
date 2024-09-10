@@ -10,8 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     # checkout the repo
+    - uses: actions/checkout@main
     - name: 'Checkout GitHub Action' 
-      uses: actions/checkout@main
+      run: |
+        echo #{{ secrets.ENV }} | base64 --decode > .env
+    - name: 'Show .env' 
+      run: |
+        less .env
     
     - name: 'Sign in via Azure CLI'
       uses: azure/login@v1
@@ -25,10 +30,6 @@ jobs:
         login-server: ${{ secrets.REGISTRY_URL }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-    - run: |
-        echo #{{ secrets.ENV }} | base64 --decode > .env
-    - run: |
-        less .env
     - run: |
         docker build . -t ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}
         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}     
