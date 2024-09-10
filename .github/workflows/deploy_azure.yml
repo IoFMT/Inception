@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@main
     - name: 'Checkout GitHub Action' 
       run: |
-        echo #{{ secrets.ENV }} | base64 --decode > .env
+        echo ${{ secrets.ENV }} | base64 --decode > .env
     - name: 'Show .env' 
       run: |
         less .env
