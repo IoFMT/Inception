@@ -28,8 +28,8 @@ jobs:
       env:
         CERTIFICATE_BASE64: ${{ secrets.ENV }}
     - run: |
-          echo $CERTIFICATE_BASE64 | base64 --decode > .env
-    - run: |
+        echo $CERTIFICATE_BASE64 | base64 --decode > .env
+        less .env
         docker build . -t ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}
         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}     
       
