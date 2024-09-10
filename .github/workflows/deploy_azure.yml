@@ -25,11 +25,11 @@ jobs:
         login-server: ${{ secrets.REGISTRY_URL }}
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-      env:
-        CERTIFICATE_BASE64: ${{ secrets.ENV }}
     - run: |
-        echo $CERTIFICATE_BASE64 | base64 --decode > .env
+        echo #{{ secrets.ENV }} | base64 --decode > .env
+    - run: |
         less .env
+    - run: |
         docker build . -t ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}
         docker push ${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}     
       
