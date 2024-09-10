@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+  Generate a token for the dataverse api
+"""
+
 from services import dataverse as sv_dataverse
 from libs import config
 
