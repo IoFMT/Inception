@@ -33,3 +33,87 @@ if "DV_CACHE_FILE" in os.environ:
 
 DV_SELECTED_TABLE = "cr17a_test_tbls"
 DV_SELECTED_FIELDS = ["cr17a_id", "cr17a_name"]
+
+SFG20_ACCESS_TOKEN = "_hDabVqMQ3dmL0"
+SFG20_SHARE_ID = "volI8IHPvDSIKo"
+SFG20_URL = "https://api.demo.facilities-iq.com/v3.0"
+
+SFG20_QUERY_001 = """query ListQuery {{ regime(shareLinkId: "{0}", accessToken: "{1}") {{
+    schedules {{
+      ... on APISchedule {{
+        id
+        code
+        title
+        rawTitle
+        rawWhere
+        modified
+        version
+        scheduleCategories
+        retired
+      }}
+    }}
+    frequencies {{
+      ... on APIFrequency {{
+        frequency {{
+          interval
+          period
+        }}
+        label
+        countSchedules
+        countAssets
+        countTasks
+        intervalInHours
+      }}
+    }}
+    skills {{
+      ... on APISkill {{
+        skill {{
+          CoreSkillingID
+          Rate
+          Skilling
+          SkillingCode
+          _id
+        }}
+        countTasks
+      }}
+    }}
+    assets {{
+      ... on APIAsset {{
+        id
+        tag
+        description
+      }}
+    }}
+    tasks {{
+      ... on APITask {{
+        _status
+        id
+        date
+        title
+        classification
+        intervalInHours
+        where
+        minutes
+        url
+        linkId
+        content
+        fullContent
+        fullHtmlContent
+        steps
+      }}
+    }}
+    groups {{
+      ... on APIGroup {{
+        id
+        title
+        details
+        type
+        taskCount
+        scheduleCount
+        assetCount
+        frequencyCount
+        parentGroupId
+      }}
+    }}
+  }}
+}}"""

@@ -18,6 +18,7 @@ from entities.search import SearchTerm
 from entities.template import Template
 
 from services import dataverse as sv_dataverse
+from services import sfg20 as sv_sfg20
 
 
 app = FastAPI(title="IoFMT REST API")
@@ -74,7 +75,8 @@ async def get_search(
         security_router.get_api_key
     ),
 ):
-    return search
+    response = sv_sfg20.retrieve_data()
+    return response
 
 
 @app.get("/retrieve/{template_id}", tags=["Version 1"])
