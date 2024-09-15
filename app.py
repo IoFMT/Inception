@@ -9,12 +9,11 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from fastapi.openapi.utils import get_openapi
 
 
 from routers import security_router
-from entities.search import SearchTerm
+from entities.search import SearchTerm, Entities
 from entities.template import Template
 
 from services import dataverse as sv_dataverse
@@ -79,14 +78,29 @@ async def get_search(
     return response
 
 
-@app.get("/retrieve/{template_id}", tags=["Version 1"])
-async def get_retrieve_template(
-    template_id: str,
+@app.get("/list/cache", tags=["Version 1"])
+async def list_cache(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ):
-    return {"TemplateID": template_id}
+    response = sv_sfg20.list_data()
+    return response
+
+
+@app.get("/retrieve/{type_id}", tags=["Version 1"])
+async def get_retrieve_template(
+    type_id: Entities,
+    schedule_id: str,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+):
+    if type_id == Entities.all:
+        response = sv_sfg20.list_data(schedule_id)
+    else:
+        response = sv_sfg20.list_data(schedule_id, type_id)
+    return {"data": response}
 
 
 @app.get("/list", tags=["Version 1"])
