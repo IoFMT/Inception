@@ -36,7 +36,11 @@ jobs:
         app-name: '${{ secrets.WEBAPI }}'
         images: '${{ secrets.REGISTRY_URL }}/${{ secrets.WEBAPI }}:${{ github.sha }}'
     
+    - uses: actions/upload-artifact@v4
+      with:
+        name: my-artifact
+        path: ./.env
+
     - name: Azure logout
       run: |
         az logout
-        echo ${{ secrets.ENV }}
