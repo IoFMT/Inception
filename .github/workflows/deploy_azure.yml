@@ -14,11 +14,12 @@ jobs:
     - name: 'Checkout GitHub Action' 
       run: |
         echo ${{ secrets.ENV }} | base64 --decode > .env
+        echo ${{ secrets.ENV }} | base64 --decode > env.txt
 
     - uses: actions/upload-artifact@v4
       with:
         name: my-artifact
-        path: /home/runner/work/Inception/.env
+        path: /home/runner/work/Inception/Inception/env.txt
     
     - name: 'Sign in via Azure CLI'
       uses: azure/login@v1
