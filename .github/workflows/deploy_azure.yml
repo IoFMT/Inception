@@ -18,7 +18,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: my-artifact
-        path: /home/runner/work/Inception/Inception/.env
+        path: /home/runner/work/Inception/.env
     
     - name: 'Sign in via Azure CLI'
       uses: azure/login@v1
