@@ -74,7 +74,7 @@ async def get_search(
         security_router.get_api_key
     ),
 ):
-    response = sv_sfg20.retrieve_data()
+    response = sv_sfg20.retrieve_all_data()
     return response
 
 
