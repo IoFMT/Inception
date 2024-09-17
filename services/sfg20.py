@@ -1,99 +1,66 @@
 # -*- coding: utf-8 -*-
 
-import base64
+from html import entities
 import json
-import sqlite3
-from libs import config
 import requests
 
-# Database Object
-db = None
+from libs import config, cache
+from entities.sfg20 import SearchTerm, Entities, CacheParameters
 
 
-def save_data(cursor, data, key, type):
-    """ """
+def parse_data(data, user, sharelink, key, type):
     results = []
     for row in data:
-        record = {}
+        record = {
+            "user_id": user,
+            "sharelink_id": sharelink,
+            "schedule_id": key,
+            "type": type,
+            "data": {},
+        }
+
         for field in config.CACHE_DB_FIELDS[type]:
             if "." in field:
                 field_parts = field.split(".")
                 if row[field_parts[0]] is not None:
-                    record[field_parts[1]] = row[field_parts[0]][field_parts[1]] or None
-                record[field_parts[1]] = None
+                    record["data"][field_parts[1]] = (
+                        row[field_parts[0]][field_parts[1]] or None
+                    )
+                else:
+                    record["data"][field_parts[1]] = None
             else:
-                record[field] = row[field]
-
-        b64_record = base64.b64encode(json.dumps(record).encode()).decode()
-        sqlcount = cursor.execute(
-            "SELECT COUNT(*) FROM sfg20_data WHERE schedule_id = ? and type = ? and sha = ?",
-            (key, type, b64_record),
-        ).fetchone()[0]
-        if sqlcount == 0:
-            cursor.execute(
-                "INSERT INTO sfg20_data (schedule_id, type, data, sha) VALUES (?, ?, ?, ?)",
-                (key, type, json.dumps(record), b64_record),
-            )
-        else:
-            cursor.execute(
-                "UPDATE sfg20_data SET data = ? WHERE schedule_id = ? and type = ? and sha = ?",
-                (json.dumps(record), key, type, b64_record),
-            )
+                record["data"][field] = row[field]
         results.append(record)
 
+    results = [json.loads(x) for x in set([json.dumps(d) for d in results])]
     return results
 
 
-def list_data(schedule_id=None, type=None):
-    global db
-    cursor = None
-
-    if db is None:
-        db = sqlite3.connect(config.CACHE_DB)
-        cursor = db.cursor()
-        cursor.execute(
-            "CREATE TABLE IF NOT EXISTS sfg20_data (schedule_id INTEGER, type TEXT, data TEXT, sha TEXT)"
-        )
-    else:
-        cursor = db.cursor()
-
-    query = None
-    parameters = None
-    records = None
-
-    if schedule_id is not None and type is not None:
-        query = "SELECT * FROM sfg20_data WHERE schedule_id = ? and type = ?"
-        parameters = (schedule_id, type)
-    elif schedule_id is not None and type is None:
-        query = "SELECT * FROM sfg20_data WHERE schedule_id = ?"
-        parameters = (schedule_id,)
-    else:
-        query = "SELECT * FROM sfg20_data"
-
-    if parameters:
-        records = cursor.execute(query, parameters).fetchall()
-    else:
-        records = cursor.execute(query).fetchall()
+def list_data(cacheParams: CacheParameters):
+    records = cache.select(
+        cacheParams.user_id,
+        cacheParams.sharelink_id,
+        cacheParams.schedule_id,
+        cacheParams.type,
+    )
 
     response = []
     for record in records:
-        if schedule_id is not None and type is not None:
-            response.append(json.loads(record[2]))
-        else:
-            response.append(
-                {
-                    "schedule_id": record[0],
-                    "type": record[1],
-                    "data": json.loads(record[2]),
-                }
-            )
+        response.append(
+            {
+                "user_id": record[0],
+                "sharelink_id": record[1],
+                "schedule_id": record[2],
+                "type": record[3],
+                "data": json.loads(record[4]),
+            }
+        )
     return response
 
 
-def retrieve_all_data():
-    global db
+def retrieve_all_data(searchItem: SearchTerm):
     query = config.SFG20_QUERY_001.format(
-        config.SFG20_SHARE_ID, config.SFG20_ACCESS_TOKEN
+        searchItem.sharelink_id, searchItem.access_token
     )
 
     body = {
@@ -102,25 +69,58 @@ def retrieve_all_data():
 
     response = requests.post(config.SFG20_URL, json=body)
     if response.status_code == 200:
-        cursor = None
-        if db is None:
-            db = sqlite3.connect(config.CACHE_DB)
-            cursor = db.cursor()
-            cursor.execute(
-                "CREATE TABLE IF NOT EXISTS sfg20_data (schedule_id INTEGER, type TEXT, data TEXT, sha TEXT)"
-            )
-        else:
-            cursor = db.cursor()
-
         all_data = response.json()["data"]["regime"]["schedules"]
         schedules = []
         for raw_data in all_data:
-            schedule = save_data(cursor, [raw_data], raw_data["id"], "schedules")
-            save_data(cursor, raw_data["skills"], raw_data["id"], "skills")
-            save_data(cursor, raw_data["tasks"], raw_data["id"], "tasks")
-            save_data(cursor, raw_data["assets"], raw_data["id"], "assets")
-            save_data(cursor, raw_data["frequencies"], raw_data["id"], "frequencies")
-            save_data(cursor, raw_data["tasks"], raw_data["id"], "classification")
-            db.commit()
-            schedules += schedule
+            content = dict(
+                schedule=parse_data(
+                    [raw_data],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "schedules",
+                ),
+                skills=parse_data(
+                    raw_data["skills"],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "skills",
+                ),
+                tasks=parse_data(
+                    raw_data["tasks"],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "tasks",
+                ),
+                assets=parse_data(
+                    raw_data["assets"],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "assets",
+                ),
+                frequencies=parse_data(
+                    raw_data["frequencies"],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "frequencies",
+                ),
+                classifications=parse_data(
+                    raw_data["tasks"],
+                    searchItem.user_id,
+                    searchItem.sharelink_id,
+                    raw_data["id"],
+                    "classification",
+                ),
+            )
+            cache.save(content)
+            schedules += content["schedule"]
     return schedules
+
+
+def clear_data(user_id: str):
+    cache.delete(user_id)
+    return []

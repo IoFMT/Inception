@@ -22,6 +22,34 @@ load_dotenv()
 if "GLOBAL_API_KEY" in os.environ:
     GLOBAL_API_KEY = os.environ["GLOBAL_API_KEY"]
 
+# -------------------------------------------------
+# Cache DB configuration
+# -------------------------------------------------
+CACHE_DB = "data/cache.db"
+
+CACHE_DB_FIELDS = {
+    "schedules": ["id", "code", "title", "rawTitle"],
+    "skills": ["skill.CoreSkillingID", "skill.Skilling", "skill.SkillingCode"],
+    "tasks": ["id", "title"],
+    "assets": ["id", "description"],
+    "frequencies": ["label", "label"],
+    "classification": ["classification", "classification"],
+}
+
+CACHE_SQL_TABLE = """CREATE TABLE IF NOT EXISTS sfg20_data (user_id TEXT, 
+                                                            sharelink_id TEXT, 
+                                                            schedule_id TEXT, 
+                                                            type TEXT, 
+                                                            data TEXT)"""
+CACHE_SQL_DELETE = """DELETE FROM sfg20_data WHERE user_id = ? and sharelink_id = ? and schedule_id = ?"""
+
+CACHE_SQL_INSERT = """INSERT INTO sfg20_data (user_id, sharelink_id, schedule_id, type, data) VALUES (?, ?, ?, ?, ?)"""
+
+CACHE_SQL_CLEAR = """DELETE FROM sfg20_data WHERE user = ?"""
+
+# -------------------------------------------------
+# Dataverse Configuration
+# -------------------------------------------------
 if "DV_BASE_URL" in os.environ:
     WEB_API_URL = os.environ["DV_BASE_URL"]
 
@@ -37,6 +65,12 @@ if "DV_AUTH_BASE" in os.environ and "DV_TENANT_ID" in os.environ:
 if "DV_CACHE_FILE" in os.environ:
     CACHEFILE = os.environ.get("DV_CACHE_FILE")
 
+DV_SELECTED_TABLE = "cr17a_test_tbls"
+DV_SELECTED_FIELDS = ["cr17a_id", "cr17a_name"]
+
+# -------------------------------------------------
+# SFG20 GraphSQL Queries
+# -------------------------------------------------
 if "SFG20_ACCESS_TOKEN" in os.environ:
     SFG20_ACCESS_TOKEN = os.environ.get("SFG20_ACCESS_TOKEN")
 
@@ -46,21 +80,6 @@ if "SFG20_SHARE_ID" in os.environ:
 if "SFG20_URL" in os.environ:
     SFG20_URL = os.environ.get("SFG20_URL")
 
-# Cache DB configuration
-CACHE_DB = "data/cache.db"
-CACHE_DB_FIELDS = {
-    "schedules": ["id", "code", "title", "rawTitle"],
-    "skills": ["skill.CoreSkillingID", "skill.Skilling", "skill.SkillingCode"],
-    "tasks": ["id", "title"],
-    "assets": ["id", "description"],
-    "frequencies": ["label", "label"],
-    "classification": ["classification", "classification"],
-}
-# Dataverse Configuration
-DV_SELECTED_TABLE = "cr17a_test_tbls"
-DV_SELECTED_FIELDS = ["cr17a_id", "cr17a_name"]
-
-# SFG20 GraphSQL Queries
 SFG20_QUERY_001 = """query ExampleQuery {{
   regime(shareLinkId: "{0}", accessToken: "{1}") {{
     words
@@ -127,3 +146,22 @@ SFG20_QUERY_001 = """query ExampleQuery {{
     }}
   }}
 }}"""
+
+# -------------------------------------------------
+# API Documentation
+# -------------------------------------------------
+
+tags_metadata = [
+    {
+        "name": "Basic",
+        "description": "Endpoint without authentication to check the API status.",
+    },
+    {
+        "name": "SFG20",
+        "description": "Endpoints to integrate with SFG20 API and our internal cache",
+    },
+    {
+        "name": "Dataverse",
+        "description": "Endpoints to integrate with Dataverse API",
+    },
+]

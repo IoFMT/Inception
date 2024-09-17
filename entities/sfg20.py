@@ -5,7 +5,9 @@ from enum import Enum
 
 
 class SearchTerm(BaseModel):
-    term: str
+    sharelink_id: str
+    access_token: str
+    user_id: str
 
 
 class Entities(str, Enum):
@@ -16,3 +18,10 @@ class Entities(str, Enum):
     frequencies = "frequencies"
     skills = "skills"
     classifications = "classifications"
+
+
+class CacheParameters(BaseModel):
+    user_id: str
+    sharelink_id: str
+    schedule_id: str | None = None
+    type: Entities | None = None
