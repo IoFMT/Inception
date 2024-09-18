@@ -25,7 +25,9 @@ def getAuthenticatedSession():
     result = None
 
     accounts = app.get_accounts()
-    if accounts is None:
+    print(accounts)
+
+    if len(accounts) == 0:
         logging.warning("No accounts found, please sign in.")
         logging.info(
             "A local browser window will open for you to sign in. CTRL+C to cancel."

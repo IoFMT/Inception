@@ -5,6 +5,7 @@
 import json
 from time import time
 import traceback
+import requests
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -134,6 +135,59 @@ async def list_cache(
         message = "Error retrieving data from SFG20 cache"
         response = [{"error": str(e)}]
     return {"status": status, "message": message, "data": response}
+
+
+@app.get(
+    "/list/links",
+    tags=["SFG20"],
+    response_model=Result,
+    description="List the data in the cache according to the parameters provided",
+)
+async def get_list_links(
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+) -> Any:
+    url = "https://api.demo.facilities-iq.com/graphql?o=GetMyShareLinks"
+
+    headers = {
+        "accept": "*/*",
+        "accept-language": "pt-BR,pt;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "clientid": "JiBG2T2dqSuh9B:sfg20/clients",
+        "content-type": "application/json",
+        "href": "https://www.demo.facilities-iq.com/app",
+        "instance": "kvhCEofyDSRF87",
+        "priority": "u=1, i",
+        "sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Microsoft Edge";v="128"',
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": '"Windows"',
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-site",
+        "cookie": "_ga=GA1.1.551238647.1726408191; _ga_ZESBZLG4GM=GS1.1.1726485952.3.1.1726486310.59.0.0; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndhbHRlckBpb2ZtdG1zLmNvbSIsImlhdCI6MTcyNjQ4NjMxMCwiZXhwIjoxNzI3MDkxMTEwfQ.j9NPmWt9-QCb0KIoTwzMkfXAQHP4RihI-7ahCZJjA6g",
+        "Referer": "https://www.demo.facilities-iq.com/",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+    }
+
+    payload = '[{"operationName":"GetMyShareLinks","variables":{"search":""},"query":"query GetMyShareLinks($search: String, $take: Int, $skip: Int) {  getMyShareLinks(skip: $skip, take: $take, search: $search) {    total    links {    name      url    }    outOfDateLinks    __typename  }}"}]'
+
+    response = requests.post(url, headers=headers, data=payload)
+    raw_data = response.json()[0]["data"]["getMyShareLinks"]["links"]
+
+    data = []
+    for item in raw_data:
+        record = {
+            "id": item["url"].split("=")[1],
+            "name": item["name"],
+            "url": item["url"],
+        }
+        data.append(record)
+
+    return {
+        "status": "OK",
+        "message": "List of SFG20 shared links",
+        "data": data,
+    }
 
 
 @app.get(

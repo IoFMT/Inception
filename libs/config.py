@@ -54,7 +54,10 @@ if "DV_BASE_URL" in os.environ:
     WEB_API_URL = os.environ["DV_BASE_URL"]
 
 if WEB_API_URL and "DV_SCP_SUFFIX" in os.environ:
-    SCOPE = [WEB_API_URL + "/" + os.environ.get("DV_SCP_SUFFIX")]
+    SCOPE = [
+        "https://graph.microsoft.com/.default",
+    ]
+    # WEB_API_URL + "/" + os.environ.get("DV_SCP_SUFFIX"),
 
 if "DV_CLIENT_ID" in os.environ:
     CLIENT_ID = os.environ.get("DV_CLIENT_ID")
@@ -146,6 +149,9 @@ SFG20_QUERY_001 = """query ExampleQuery {{
     }}
   }}
 }}"""
+
+SFG20_SHP_LIST = "https://graph.microsoft.com/v1.0/sites/{0}/lists/{1}/items"
+
 
 # -------------------------------------------------
 # API Documentation
