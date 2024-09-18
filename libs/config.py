@@ -28,9 +28,24 @@ if "GLOBAL_API_KEY" in os.environ:
 CACHE_DB = "data/cache.db"
 
 CACHE_DB_FIELDS = {
-    "schedules": ["id", "code", "title", "rawTitle"],
+    "schedules": ["id", "code", "title", "rawTitle", "modified", "version"],
     "skills": ["skill.CoreSkillingID", "skill.Skilling", "skill.SkillingCode"],
-    "tasks": ["id", "title"],
+    "tasks": [
+        "id",
+        "title",
+        "classification",
+        "frequency.interval",
+        "frequency.period",
+        "minutes",
+        "date",
+        "url",
+        "linkId",
+        "content",
+        "fullContent",
+        "skill.CoreSkillingID",
+        "skill.Skilling",
+        "schedule.code",
+    ],
     "assets": ["id", "description"],
     "frequencies": ["label", "label"],
     "classification": ["classification", "classification"],
@@ -54,10 +69,7 @@ if "DV_BASE_URL" in os.environ:
     WEB_API_URL = os.environ["DV_BASE_URL"]
 
 if WEB_API_URL and "DV_SCP_SUFFIX" in os.environ:
-    SCOPE = [
-        "https://graph.microsoft.com/.default",
-    ]
-    # WEB_API_URL + "/" + os.environ.get("DV_SCP_SUFFIX"),
+    SCOPE = [WEB_API_URL + "/" + os.environ.get("DV_SCP_SUFFIX")]
 
 if "DV_CLIENT_ID" in os.environ:
     CLIENT_ID = os.environ.get("DV_CLIENT_ID")
@@ -126,6 +138,20 @@ SFG20_QUERY_001 = """query ExampleQuery {{
             fullContent
             fullHtmlContent
             steps
+            frequency {{
+              interval
+              period
+            }}
+            skill {{
+              CoreSkillingID
+              Rate
+              Skilling
+              SkillingCode
+              _id
+            }}
+            schedule {{
+              code
+            }}
           }}
         }}
         assets {{

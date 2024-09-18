@@ -25,7 +25,6 @@ def getAuthenticatedSession():
     result = None
 
     accounts = app.get_accounts()
-    print(accounts)
 
     if len(accounts) == 0:
         logging.warning("No accounts found, please sign in.")
@@ -48,6 +47,8 @@ def getAuthenticatedSession():
                 "OData-Version": "4.0",
                 "If-None-Match": "null",
                 "Accept": "application/json",
+                "Content-Type": "application/json; charset=utf-8",
+                "Prefer": "return=representation",
             }
         )
         return session, token_cache
@@ -58,19 +59,19 @@ def getAuthenticatedSession():
         return None, None
 
 
-def retrieve_data(session, token_cache):
+def retrieve_data(session, object):
     graph_data = session.get(  # Use token to call downstream service
-        f"{config.WEB_API_URL}api/data/v9.2/{config.DV_SELECTED_TABLE}?$select={','.join(config.DV_SELECTED_FIELDS)}"
+        f"{config.WEB_API_URL}api/data/v9.2/{object.table_name}?$filter={object.key_field} eq '{object.key_value}'",
     ).json()
 
+    print(graph_data)
     results = graph_data.get("value", [])
     return results
 
 
-def save_data(session, token_cache, data):
+def save_data(session, table_name, data, key_field):
     graph_data = session.post(
-        f"{config.WEB_API_URL}api/data/v9.2/{config.DV_SELECTED_TABLE}",
+        f"{config.WEB_API_URL}api/data/v9.2/{table_name}?$select={key_field}",
         json=data,
     )
-
     return graph_data

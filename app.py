@@ -16,7 +16,7 @@ from fastapi.openapi.utils import get_openapi
 
 from routers import security_router
 from entities.sfg20 import CacheParameters, SearchTerm, Entities
-from entities.template import Template
+from entities.template import Template, Report, Task, Tables
 from entities.base import Result
 from typing import Any
 
@@ -111,6 +111,7 @@ async def get_search(
         status = "Error"
         message = "Error retrieving data from SFG20"
         response = [{"error": str(e)}]
+        print(traceback.format_exc())
     return {"status": status, "message": message, "data": response}
 
 
@@ -141,7 +142,7 @@ async def list_cache(
     "/list/links",
     tags=["SFG20"],
     response_model=Result,
-    description="List the data in the cache according to the parameters provided",
+    description="List the SFG20 shared links available for the user",
 )
 async def get_list_links(
     api_key: security_router.APIKey = security_router.Depends(
@@ -213,13 +214,14 @@ async def list_cache(
     return {"status": status, "message": message, "data": response}
 
 
-@app.get(
+@app.post(
     "/list/dataverse",
     tags=["Dataverse"],
     response_model=Result,
-    description="List the data in the Dataverse",
+    description="List the data from the dataverse table, filtered by the key field",
 )
 async def get_list_dataverse(
+    object: Template,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
@@ -230,7 +232,7 @@ async def get_list_dataverse(
         session, token = sv_dataverse.getAuthenticatedSession()
 
         if session:
-            data = sv_dataverse.retrieve_data(session, token)
+            data = sv_dataverse.retrieve_data(session, object)
     except Exception as e:
         status = "Error"
         message = "Error retrieving data from Dataverse"
@@ -239,32 +241,66 @@ async def get_list_dataverse(
 
 
 @app.post(
-    "/save",
+    "/save/report",
     tags=["Dataverse"],
     response_model=Result,
-    description="Save the template in the Dataverse",
+    description="Save the header information of the report in Dataverse",
 )
-async def post_save_template(
-    template: Template,
+async def post_save_report(
+    report: Report,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ):
     status = "OK"
-    message = "Data retrieved successfully from SFG20 cache"
+    message = "Data saved successfully in Dataverse report table"
     try:
         session, token = sv_dataverse.getAuthenticatedSession()
 
         if session:
-            data = sv_dataverse.save_data(session, token, template.model_dump_json())
+            data = sv_dataverse.save_data(
+                session,
+                Tables.report,
+                report.model_dump_json(),
+                "cr17a_reportuid",
+            )
     except Exception as e:
         status = "Error"
         message = "Error saving data in Dataverse"
         data = [{"error": str(e)}]
-    return {"status": status, "message": message, "data": data}
+    return {"status": status, "message": message, "data": [data.json()]}
+
+
+@app.post(
+    "/save/task",
+    tags=["Dataverse"],
+    response_model=Result,
+    description="Save the Task information of the report in Dataverse",
+)
+async def post_save_task(
+    task: Task,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+):
+    status = "OK"
+    message = "Data saved successfully in Dataverse task table"
+    try:
+        session, token = sv_dataverse.getAuthenticatedSession()
+
+        if session:
+            data = sv_dataverse.save_data(
+                session,
+                Tables.task,
+                task.model_dump_json(),
+                "cr17a_reportuid",
+            )
+    except Exception as e:
+        status = "Error"
+        message = "Error saving data in Dataverse"
+        data = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": [data.json()]}
 
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
-# TODO: review the endpoints needed and create the new ones
