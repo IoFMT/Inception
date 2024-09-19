@@ -61,7 +61,7 @@ def save(data):
                     item["sharelink_id"],
                     item["schedule_id"],
                     item["type"],
-                    json.dumps(item["data"]),
+                    json.dumps(item),
                 ),
             )
     db.commit()

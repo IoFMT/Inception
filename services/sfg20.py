@@ -16,20 +16,17 @@ def parse_data(data, user, sharelink, key, type):
             "sharelink_id": sharelink,
             "schedule_id": key,
             "type": type,
-            "data": {},
         }
 
         for field in config.CACHE_DB_FIELDS[type]:
             if "." in field:
                 field_parts = field.split(".")
                 if row[field_parts[0]] is not None:
-                    record["data"][field_parts[1]] = (
-                        row[field_parts[0]][field_parts[1]] or None
-                    )
+                    record[field_parts[1]] = row[field_parts[0]][field_parts[1]] or None
                 else:
-                    record["data"][field_parts[1]] = None
+                    record[field_parts[1]] = None
             else:
-                record["data"][field] = row[field]
+                record[field] = row[field]
         results.append(record)
 
     results = [json.loads(x) for x in set([json.dumps(d) for d in results])]
@@ -46,15 +43,7 @@ def list_data(cacheParams: CacheParameters):
 
     response = []
     for record in records:
-        response.append(
-            {
-                "user_id": record[0],
-                "sharelink_id": record[1],
-                "schedule_id": record[2],
-                "type": record[3],
-                "data": json.loads(record[4]),
-            }
-        )
+        response.append(json.loads(record[4]))
     return response
 
 
