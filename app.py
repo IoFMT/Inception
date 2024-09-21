@@ -111,7 +111,16 @@ app.openapi = custom_openapi
 # -------------------------------------------------
 # Endpoints
 # -------------------------------------------------
-@app.get("/", tags=["Basic"], response_class=HTMLResponse)
+@app.get("/", tags=["Basic"], response_model=Result)
+async def get_root() -> Any:
+    return {
+        "status": "OK",
+        "message": "IoFMT REST API is running",
+        "data": [{"version": "0.3.0"}],
+    }
+
+
+@app.get("/admin", tags=["Basic"], response_class=HTMLResponse)
 async def get_root(
     request: Request, username: Annotated[str, Depends(get_current_username)]
 ) -> Any:
