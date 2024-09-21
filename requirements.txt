@@ -10,3 +10,4 @@ typer
 psycopg2
 sqlalchemy
 requests
+jinja2
