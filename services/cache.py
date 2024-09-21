@@ -146,11 +146,16 @@ def select_config(api_key):
             for item in raw_shared_links:
                 record = {}
                 if "#" in item:
-                    record["sharelink_id"] = item.split("#")[0]
-                    record["sharedlink_name"] = item.split("#")[1]
+                    record["id"] = item.split("#")[0]
+                    record["name"] = item.split("#")[1]
                 else:
-                    record["sharelink_id"] = item
-                    record["sharedlink_name"] = "Name not provided"
+                    record["id"] = item
+                    record["name"] = "Name not provided"
+                record["url"] = (
+                    "https://www.demo.facilities-iq.com/app/facilities?share={0}".format(
+                        record["id"]
+                    )
+                )
                 shared_links.append(record)
             results.append({"access_token": res[0], "shared_links": shared_links})
         else:

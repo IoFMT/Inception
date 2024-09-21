@@ -23,7 +23,7 @@ def retrieve_api_key(api_key: str):
     if encode(api_key) == config.GLOBAL_API_KEY:
         return api_key
     else:
-        results = cache.get_config(api_key_header)
+        results = cache.select_config(api_key)
         return results
 
 

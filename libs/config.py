@@ -207,15 +207,15 @@ tags_metadata = [
     },
     {
         "name": "SFG20",
-        "description": "Endpoints to integrate with SFG20 API and our internal cache",
+        "description": "Endpoints to integrate with SFG20 API and our internal cache.",
     },
     {
-        "name": "Dataverse",
-        "description": "Endpoints to integrate with Dataverse API",
+        "name": "Config",
+        "description": "Endpoints to access the configuration data.",
     },
     {
         "name": "Cache",
-        "description": "Endpoints to interact with the internal cache",
+        "description": "Endpoints to interact with the internal cache.",
     },
 ]
 
