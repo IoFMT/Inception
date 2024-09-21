@@ -71,7 +71,11 @@ def custom_openapi():
         title="IoFMT REST API",
         version="0.5.0",
         summary="This is a REST API for IoFMT Inception project",
-        description="This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance. This API is also mapped in a Power Platform Custom Connector.",
+        description="""This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance.
+        <br><br>
+        This API is also mapped in a Power Platform Custom Connector.
+        <br><br>
+        To generate the API KEY for a customer, please go to: <a href='https://iofmtapi.azurewebsites.net/admin' target='_blank'>Admin</a>""",
         routes=app.routes,
         openapi_version="3.0.2",
         tags=sv_sfg20.config.tags_metadata,
@@ -120,7 +124,7 @@ async def get_api_status() -> Any:
     }
 
 
-@app.get("/admin", tags=["Basic"], response_class=HTMLResponse)
+@app.get("/admin", tags=["Basic"], response_class=HTMLResponse, include_in_schema=False)
 async def admin(
     request: Request, username: Annotated[str, Depends(get_current_username)]
 ) -> Any:
