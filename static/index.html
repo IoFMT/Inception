@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Key Management</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    .tab-content {
+      padding: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="title is-3">API Key Management</h1>
+
+    <div class="tabs is-boxed">
+      <ul>
+        <li class="tab is-active" onclick="openTab(event, 'Add')"><a>Create API Key</a></li>
+        <li class="tab" onclick="openTab(event, 'List')"><a>API Keys List</a></li>
+      </ul>
+    </div>
+
+    <div class="container">
+      <div id="Add" class="content-tab is-active">
+        <form id="create-api-key-form">
+          <div class="field">
+            <label class="label">Customer Name</label>
+            <div class="control">
+              <input class="input" type="text" id="customer-name" placeholder="Enter customer name" required>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">SFG20 Access Token</label>
+            <div class="control">
+              <input class="input" type="text" id="access-token" placeholder="Enter access token" required>
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">List of Shared Link IDs</label>
+            <div class="control">
+              <textarea class="textarea" id="shared-link-ids" placeholder="Enter shared link IDs, separated by commas"
+                required></textarea>
+            </div>
+          </div>
+          <div class="field">Example: shareLinkID#Name,shareLinkID,Name, ...</div>
+          <div class="field">
+            <button class="button is-primary" id="generate-api-key">Generate API Key</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="List" class="content-tab" style="display:none">
+        <table class="table is-fullwidth">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Access Token</th>
+              <th>API Key</th>
+              <th>Shared Links</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="api-key-list">
+          </tbody>
+        </table>
+        <nav class="pagination" role="navigation" aria-label="pagination">
+          <a class="pagination-previous" disabled>Previous</a>
+          <a class="pagination-next" disabled>Next</a>
+          <ul class="pagination-list">
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let apiKeys = []; // Replace with actual data loading or storage
+
+    const generateApiKeyButton = document.getElementById('generate-api-key');
+    const apiKeyList = document.getElementById('api-key-list');
+
+    generateApiKeyButton.addEventListener('click', (event) => {
+      event.preventDefault();
+
+      const customerName = document.getElementById('customer-name').value;
+      const accessToken = document.getElementById('access-token').value;
+      const sharedLinkIds = document.getElementById('shared-link-ids').value;
+
+      // Generate API key (replace with your actual key generation logic)
+      const apiKey = `ak_${Math.random().toString(36).substring(2, 15)}`;
+
+      if (customerName === '' || accessToken === '' || sharedLinkIds === '') {
+        alert('Please fill in all fields.');
+        return;
+      }
+
+      fetch('/config/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Access-Token': '{{master_api_key}}'
+        },
+        body: JSON.stringify({
+          api_key: apiKey,
+          customer_name: customerName,
+          access_token: accessToken,
+          shared_links: sharedLinkIds
+        })
+      });
+
+      // Update API keys table
+      renderApiKeyList();
+
+      // Clear form fields
+      createApiKeyForm.reset();
+    });
+
+    function renderApiKeyList() {
+      apiKeyList.innerHTML = ''; // Clear existing table rows
+      let apiKeys = null;
+
+      fetch("/config/get/all", {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Access-Token': '{{master_api_key}}'
+        },
+      }).then((response) => {
+        return response.json();
+      }).then((data) => {
+        apiKeys = data.data;
+        apiKeys.forEach((apiKey) => {
+          const row = document.createElement('tr');
+
+          const customerNameCell = document.createElement('td');
+          customerNameCell.textContent = apiKey.customer_name;
+          row.appendChild(customerNameCell);
+
+          const accessTokenCell = document.createElement('td');
+          accessTokenCell.textContent = apiKey.access_token;
+          row.appendChild(accessTokenCell);
+
+          const apiKeyCell = document.createElement('td');
+          apiKeyCell.textContent = apiKey.api_key;
+          row.appendChild(apiKeyCell);
+
+          const sharedLinksCell = document.createElement('td');
+          sharedLinksCell.textContent = apiKey.shared_links;
+          row.appendChild(sharedLinksCell);
+
+          const actionCell = document.createElement('td');
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = 'Delete';
+          deleteButton.classList.add('button', 'is-danger');
+          deleteButton.addEventListener('click', () => {
+            // Implement delete functionality
+            var result = confirm("Want to delete?");
+            if (result) {
+              fetch(`config/delete/${apiKey.api_key}`, {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-Access-Token': '{{master_api_key}}'
+                },
+              }).then(() => {
+                renderApiKeyList();
+              });
+            }
+          });
+          actionCell.appendChild(deleteButton);
+          row.appendChild(actionCell);
+          apiKeyList.appendChild(row);
+        });
+      });
+    }
+
+    function openTab(evt, tabName) {
+      var i, x, tablinks;
+      x = document.getElementsByClassName("content-tab");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tab");
+      for (i = 0; i < x.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" is-active", "");
+      }
+      document.getElementById(tabName).style.display = "block";
+      evt.currentTarget.className += " is-active";
+    }
+
+    // Initialize table with example data
+    renderApiKeyList();
+  </script>
+</body>
+
+</html>

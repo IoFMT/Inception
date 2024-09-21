@@ -1,11 +1,11 @@
 fastapi
 pydantic
 python-dotenv
-supabase
 uvicorn
 gunicorn
 python-multipart
-msal
 pytest
 pytest-mock
 typer
+psycopg2
+sqlalchemy

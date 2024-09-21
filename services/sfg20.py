@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from html import entities
 import json
 import requests
 
-from libs import config, cache
-from entities.sfg20 import SearchTerm, Entities, CacheParameters
+from libs import config
+from entities.sfg20 import SearchTerm
 
 
 def parse_data(data, user, sharelink, key, type):
@@ -31,20 +30,6 @@ def parse_data(data, user, sharelink, key, type):
 
     results = [json.loads(x) for x in set([json.dumps(d) for d in results])]
     return results
-
-
-def list_data(cacheParams: CacheParameters):
-    records = cache.select(
-        cacheParams.user_id,
-        cacheParams.sharelink_id,
-        cacheParams.schedule_id,
-        cacheParams.type,
-    )
-
-    response = []
-    for record in records:
-        response.append(json.loads(record[4]))
-    return response
 
 
 def retrieve_all_data(searchItem: SearchTerm):
@@ -105,11 +90,6 @@ def retrieve_all_data(searchItem: SearchTerm):
                     "classification",
                 ),
             )
-            cache.save(content)
-            schedules += content["schedule"]
+            schedules.append(content)
+
     return schedules
-
-
-def clear_data(user_id: str):
-    cache.delete(user_id)
-    return []

@@ -33,28 +33,3 @@ def test_get_retrieve_template():
     response = client.get(f"/retrieve/{template_id}", headers=header)
     assert response.status_code == 200
     assert response.json() == {"TemplateID": template_id}
-
-
-def test_get_list_dataverse(mocker):
-    mocker.patch(
-        "services.dataverse.getAuthenticatedSession", return_value=(True, "token")
-    )
-    mocker.patch(
-        "services.dataverse.retrieve_data", return_value={"data": "example_data"}
-    )
-
-    response = client.get("/list", headers=header)
-    assert response.status_code == 200
-    assert response.json() == {"data": {"data": "example_data"}}
-
-
-def test_post_save_template(mocker):
-    template = {"cr17a_id": "2", "cr17a_name": "example_template"}
-    mocker.patch(
-        "services.dataverse.getAuthenticatedSession", return_value=(True, "token")
-    )
-    mocker.patch("services.dataverse.save_data", return_value=template)
-
-    response = client.post("/save", json=template, headers=header)
-    assert response.status_code == 200
-    assert response.json() == {"Template": template}

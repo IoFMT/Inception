@@ -2,31 +2,39 @@
 """
     Main file to run the API
 """
-import json
-from time import time
+import secrets
 import traceback
-import requests
 
+from time import time
+from typing import Annotated, Any
+
+
+import requests
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from fastapi.templating import Jinja2Templates
 
 
 from routers import security_router
-from entities.sfg20 import CacheParameters, SearchTerm, Entities
-from entities.template import Template, Report, Task, Tables
-from entities.base import Result
-from typing import Any
-
-
-from services import dataverse as sv_dataverse
+from entities.sfg20 import CacheParameters, SearchTerm
+from entities.base import Config, Result
 from services import sfg20 as sv_sfg20
+from services import cache
+from libs import config
+from libs.utils import decode
+
+# from entities.template import Template, Report, Task, Tables
+# from services import dataverse as sv_dataverse
 
 
 app = FastAPI(title="IoFMT REST API")
-
+security = HTTPBasic()
+templates = Jinja2Templates(directory="static")
 
 # -------------------------------------------------
 # Adding Middlewares
@@ -61,9 +69,9 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="IoFMT REST API",
-        version="0.3.0",
-        summary="This is a REST API for IoFMT project",
-        description="This REST API acts as a Facade for connecting to the differemt data sources: SFG20 and Dataverse. This API is also mapped in a Power Platform Custom Connector.",
+        version="0.5.0",
+        summary="This is a REST API for IoFMT Inception project",
+        description="This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance. This API is also mapped in a Power Platform Custom Connector.",
         routes=app.routes,
         openapi_version="3.0.2",
         tags=sv_sfg20.config.tags_metadata,
@@ -75,20 +83,46 @@ def custom_openapi():
     return app.openapi_schema
 
 
+def get_current_username(
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)],
+):
+    current_username_bytes = credentials.username.encode("utf8")
+    correct_username_bytes = config.ADMIN_USER.encode("utf8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, correct_username_bytes
+    )
+    current_password_bytes = credentials.password.encode("utf8")
+    correct_password_bytes = config.ADMIN_PWD.encode("utf8")
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, correct_password_bytes
+    )
+    if not (is_correct_username and is_correct_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
 app.openapi = custom_openapi
+
 
 # -------------------------------------------------
 # Endpoints
 # -------------------------------------------------
-
-
-@app.get("/", tags=["Basic"], response_model=Result)
-async def get_root() -> Any:
-    return {
-        "status": "OK",
-        "message": "IoFMT REST API is running",
-        "data": [{"version": "0.3.0"}],
-    }
+@app.get("/", tags=["Basic"], response_class=HTMLResponse)
+async def get_root(
+    request: Request, username: Annotated[str, Depends(get_current_username)]
+) -> Any:
+    return templates.TemplateResponse(
+        "index.html",
+        {
+            "request": request,
+            "name": username,
+            "master_api_key": decode(config.GLOBAL_API_KEY),
+        },
+    )
 
 
 @app.post(
@@ -106,34 +140,14 @@ async def get_search(
     status = "OK"
     message = "Data retrieved successfully from SFG20 and cached in the API"
     try:
-        response = sv_sfg20.retrieve_all_data(search)
+        raw_data = sv_sfg20.retrieve_all_data(search)
+        response = []
+        for item in raw_data:
+            cache.save_cache(item)
+            response.append(item["schedule"][0])
     except Exception as e:
         status = "Error"
         message = "Error retrieving data from SFG20"
-        response = [{"error": str(e)}]
-        print(traceback.format_exc())
-    return {"status": status, "message": message, "data": response}
-
-
-@app.post(
-    "/list/cache",
-    tags=["SFG20"],
-    response_model=Result,
-    description="List the data in the cache according to the parameters provided",
-)
-async def list_cache(
-    cacheParams: CacheParameters,
-    api_key: security_router.APIKey = security_router.Depends(
-        security_router.get_api_key
-    ),
-) -> Any:
-    status = "OK"
-    message = "Data retrieved successfully from SFG20 cache"
-    try:
-        response = sv_sfg20.list_data(cacheParams)
-    except Exception as e:
-        status = "Error"
-        message = "Error retrieving data from SFG20 cache"
         response = [{"error": str(e)}]
     return {"status": status, "message": message, "data": response}
 
@@ -191,115 +205,210 @@ async def get_list_links(
     }
 
 
-@app.get(
-    "/delete/cache",
-    tags=["SFG20"],
+@app.post(
+    "/list/cache",
+    tags=["Cache"],
     response_model=Result,
-    description="Delete all the data in the cache for the informed user",
+    description="List the data in the cache according to the parameters provided. When a parameter is ",
 )
 async def list_cache(
+    cacheParams: CacheParameters,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+) -> Any:
+    status = "OK"
+    message = "Data retrieved successfully from SFG20 cache"
+    try:
+        response = cache.list_cache(cacheParams)
+    except Exception as e:
+        status = "Error"
+        message = "Error retrieving data from SFG20 cache"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
+
+
+@app.get(
+    "/delete/cache",
+    tags=["Cache"],
+    response_model=Result,
+    description="Delete all the data in the cache for the selected user",
+)
+async def delete_cache(
     user_id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ) -> Any:
     status = "OK"
-    message = "Successfully Cleaning SFG20 cache"
+    message = f"Successfully cleaned data cache for user {user_id}"
+    response = []
     try:
-        response = sv_sfg20.clear_data(user_id)
+        cache.clear_cache(user_id)
     except Exception as e:
         status = "Error"
-        message = "Error cleaning SFG20 cache"
+        message = "Error cleaning data cache"
         response = [{"error": str(e)}]
     return {"status": status, "message": message, "data": response}
 
 
 @app.post(
-    "/list/dataverse",
-    tags=["Dataverse"],
+    "/config/add",
+    tags=["Cache"],
     response_model=Result,
-    description="List the data from the dataverse table, filtered by the key field",
+    description="Add a new configuration to the Config table",
 )
-async def get_list_dataverse(
-    object: Template,
+def config_add(
+    data: Config,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ):
     status = "OK"
-    message = "Data retrieved successfully from Dataverse"
+    message = "Data saved successfully in Config table"
     try:
-        session, token = sv_dataverse.getAuthenticatedSession()
-
-        if session:
-            data = sv_dataverse.retrieve_data(session, object)
+        cache.add_config(data)
+        response = []
     except Exception as e:
         status = "Error"
-        message = "Error retrieving data from Dataverse"
-        data = [{"error": str(e)}]
-    return {"status": status, "message": message, "data": data}
+        message = "Error saving data in Config table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
 
 
-@app.post(
-    "/save/report",
-    tags=["Dataverse"],
+@app.get(
+    "/config/delete/{id}",
+    tags=["Cache"],
     response_model=Result,
-    description="Save the header information of the report in Dataverse",
+    description="Delete the configuration from the Config table",
 )
-async def post_save_report(
-    report: Report,
+def config_delete(
+    id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ):
     status = "OK"
-    message = "Data saved successfully in Dataverse report table"
+    message = "Data deleted successfully in Config table"
+    response = []
     try:
-        session, token = sv_dataverse.getAuthenticatedSession()
-
-        if session:
-            data = sv_dataverse.save_data(
-                session,
-                Tables.report,
-                report.model_dump_json(),
-                "cr17a_reportuid",
-            )
+        cache.delete_config(id)
     except Exception as e:
         status = "Error"
-        message = "Error saving data in Dataverse"
-        data = [{"error": str(e)}]
-    return {"status": status, "message": message, "data": [data.json()]}
+        message = "Error deleting data in Config table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
 
 
-@app.post(
-    "/save/task",
-    tags=["Dataverse"],
+@app.get(
+    "/config/get/{id}",
+    tags=["Cache"],
     response_model=Result,
-    description="Save the Task information of the report in Dataverse",
+    description="Delete the configuration from the Config table",
 )
-async def post_save_task(
-    task: Task,
+def config_select(
+    id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ):
     status = "OK"
-    message = "Data saved successfully in Dataverse task table"
+    message = "Data retrieved successfully from Config table"
     try:
-        session, token = sv_dataverse.getAuthenticatedSession()
-
-        if session:
-            data = sv_dataverse.save_data(
-                session,
-                Tables.task,
-                task.model_dump_json(),
-                "cr17a_reportuid",
-            )
+        response = cache.select_config(id)
     except Exception as e:
         status = "Error"
-        message = "Error saving data in Dataverse"
-        data = [{"error": str(e)}]
-    return {"status": status, "message": message, "data": [data.json()]}
+        message = "Error retrieving data from Config table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
+
+
+# @app.post(
+#     "/list/dataverse",
+#     tags=["Dataverse"],
+#     response_model=Result,
+#     description="List the data from the dataverse table, filtered by the key field",
+# )
+# async def get_list_dataverse(
+#     object: Template,
+#     api_key: security_router.APIKey = security_router.Depends(
+#         security_router.get_api_key
+#     ),
+# ):
+#     status = "OK"
+#     message = "Data retrieved successfully from Dataverse"
+#     try:
+#         session, token = sv_dataverse.getAuthenticatedSession()
+
+#         if session:
+#             data = sv_dataverse.retrieve_data(session, object)
+#     except Exception as e:
+#         status = "Error"
+#         message = "Error retrieving data from Dataverse"
+#         data = [{"error": str(e)}]
+#     return {"status": status, "message": message, "data": data}
+
+
+# @app.post(
+#     "/save/report",
+#     tags=["Dataverse"],
+#     response_model=Result,
+#     description="Save the header information of the report in Dataverse",
+# )
+# async def post_save_report(
+#     report: Report,
+#     api_key: security_router.APIKey = security_router.Depends(
+#         security_router.get_api_key
+#     ),
+# ):
+#     status = "OK"
+#     message = "Data saved successfully in Dataverse report table"
+#     try:
+#         session, token = sv_dataverse.getAuthenticatedSession()
+
+#         if session:
+#             data = sv_dataverse.save_data(
+#                 session,
+#                 Tables.report,
+#                 report.model_dump_json(),
+#                 "cr17a_reportuid",
+#             )
+#     except Exception as e:
+#         status = "Error"
+#         message = "Error saving data in Dataverse"
+#         data = [{"error": str(e)}]
+#     return {"status": status, "message": message, "data": [data.json()]}
+
+
+# @app.post(
+#     "/save/task",
+#     tags=["Dataverse"],
+#     response_model=Result,
+#     description="Save the Task information of the report in Dataverse",
+# )
+# async def post_save_task(
+#     task: Task,
+#     api_key: security_router.APIKey = security_router.Depends(
+#         security_router.get_api_key
+#     ),
+# ):
+#     status = "OK"
+#     message = "Data saved successfully in Dataverse task table"
+#     try:
+#         session, token = sv_dataverse.getAuthenticatedSession()
+
+#         if session:
+#             data = sv_dataverse.save_data(
+#                 session,
+#                 Tables.task,
+#                 task.model_dump_json(),
+#                 "cr17a_reportuid",
+#             )
+#     except Exception as e:
+#         status = "Error"
+#         message = "Error saving data in Dataverse"
+#         data = [{"error": str(e)}]
+#     return {"status": status, "message": message, "data": [data.json()]}
 
 
 if __name__ == "__main__":

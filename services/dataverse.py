@@ -1,13 +1,9 @@
 import os
-import logging
 
 import msal
 import requests
 
 from libs import config
-
-
-logging.basicConfig(level=logging.DEBUG)
 
 
 def getAuthenticatedSession():
