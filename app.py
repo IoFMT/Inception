@@ -112,7 +112,7 @@ app.openapi = custom_openapi
 # Endpoints
 # -------------------------------------------------
 @app.get("/", tags=["Basic"], response_model=Result)
-async def get_root() -> Any:
+async def get_api_status() -> Any:
     return {
         "status": "OK",
         "message": "IoFMT REST API is running",
@@ -121,7 +121,7 @@ async def get_root() -> Any:
 
 
 @app.get("/admin", tags=["Basic"], response_class=HTMLResponse)
-async def get_root(
+async def admin(
     request: Request, username: Annotated[str, Depends(get_current_username)]
 ) -> Any:
     return templates.TemplateResponse(
@@ -140,7 +140,7 @@ async def get_root(
     response_model=Result,
     description="Search SFG20 schedules according to the parameters provided and load into the cache",
 )
-async def get_search(
+async def get_schedules(
     search: SearchTerm,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -223,7 +223,7 @@ async def get_list_links(
     response_model=Result,
     description="List the data in the cache according to the parameters provided. When a parameter is ",
 )
-async def list_cache(
+async def get_from_cache(
     cacheParams: CacheParameters,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -246,7 +246,7 @@ async def list_cache(
     response_model=Result,
     description="Delete all the data in the cache for the selected user",
 )
-async def delete_cache(
+async def delete_from_cache(
     user_id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -341,7 +341,7 @@ def config_select(
     response_model=Result,
     description="Delete the configuration from the Config table",
 )
-def config_select(
+def config_select_token(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
