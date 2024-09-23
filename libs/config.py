@@ -56,6 +56,7 @@ CACHE_DB_FIELDS = {
         "skill.CoreSkillingID",
         "skill.Skilling",
         "schedule.code",
+        "schedule.version",
         "steps",
     ],
     "assets": ["id", "description"],
@@ -168,6 +169,7 @@ SFG20_QUERY_001 = """query ExampleQuery {{
             }}
             schedule {{
               code
+              version
             }}
           }}
         }}

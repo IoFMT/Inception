@@ -362,6 +362,11 @@ def config_select_token(
     return {"status": status, "message": message, "data": response}
 
 
+# TODO: two endpoints for saving data in SFG20
+# TODO: add the sort parameter on list_cache
+# TODO: specific for tasks, derive a task number field based on the last part of the id
+# TODO: list_schedules should have a changessince parameter
+
 # @app.post(
 #     "/list/dataverse",
 #     tags=["Dataverse"],
