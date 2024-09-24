@@ -2,12 +2,12 @@
 
 import json
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, desc, select, text
 from sqlalchemy.orm import sessionmaker
 
 
 from libs import config
-from entities.sfg20 import CacheParameters, Entities
+from entities.sfg20 import CacheParameters, Entities, sfg20_data
 from entities.base import Config
 
 engine = None
@@ -20,12 +20,10 @@ def get_db():
     if engine is None:
         engine = create_engine(config.CACHE_DB)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-        print("Creating cache database")
         db1 = SessionLocal()
         db1.execute(text(config.CACHE_SQL_CREATE))
         db1.commit()
         db1.close()
-        print("Cache database created")
 
     db = SessionLocal()
     return db
@@ -64,13 +62,19 @@ def list_cache(item: CacheParameters):
     response = []
     for record in records:
         response.append(json.loads(record[4]))
+
+    if item.order_field is not None:
+        if item.order_direction is not None and item.order_direction == "desc":
+            response = sorted(response, key=lambda x: x[item.order_field], reverse=True)
+        else:
+            response = sorted(response, key=lambda x: x[item.order_field])
+
     return response
 
 
 def save_cache(data):
     db = get_db()
 
-    print("Deleting cache data")
     stmt_delete = text(config.CACHE_SQL_DELETE)
     stmt_delete = stmt_delete.bindparams(
         p1=data["schedule"][0]["user_id"],
@@ -79,7 +83,6 @@ def save_cache(data):
     )
     db.execute(stmt_delete)
 
-    print("Inserting cache data")
     for key in data:
         for item in data[key]:
             stmt_insert = text(config.CACHE_SQL_INSERT)

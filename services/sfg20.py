@@ -26,6 +26,12 @@ def parse_data(data, user, sharelink, key, type):
                     record[field_parts[1]] = None
             else:
                 record[field] = row[field]
+
+        if type == "tasks":
+            if len(record["id"].split(".")) == 4:
+                record["task_number"] = int(record["id"].split(".")[3]) + 1
+            else:
+                record["task_number"] = 1
         results.append(record)
 
     results = [json.loads(x) for x in set([json.dumps(d) for d in results])]
@@ -33,8 +39,12 @@ def parse_data(data, user, sharelink, key, type):
 
 
 def retrieve_all_data(searchItem: SearchTerm):
+    since_date = searchItem.changes_since
+    if searchItem.changes_since is None:
+        since_date = "2000-01-01T00:00:00Z"
+
     query = config.SFG20_QUERY_001.format(
-        searchItem.sharelink_id, searchItem.access_token
+        searchItem.sharelink_id, searchItem.access_token, since_date
     )
 
     body = {
@@ -93,3 +103,7 @@ def retrieve_all_data(searchItem: SearchTerm):
             schedules.append(content)
 
     return schedules
+
+
+def save_task():
+    pass

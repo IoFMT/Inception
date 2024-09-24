@@ -274,7 +274,7 @@ async def delete_from_cache(
     response_model=Result,
     description="Add a new configuration to the Config table",
 )
-def config_add(
+async def config_add(
     data: Config,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -298,7 +298,7 @@ def config_add(
     response_model=Result,
     description="Delete the configuration from the Config table",
 )
-def config_delete(
+async def config_delete(
     id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -322,7 +322,7 @@ def config_delete(
     response_model=Result,
     description="Delete the configuration from the Config table",
 )
-def config_select(
+async def config_select(
     id: str,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -363,9 +363,6 @@ def config_select_token(
 
 
 # TODO: two endpoints for saving data in SFG20
-# TODO: add the sort parameter on list_cache
-# TODO: specific for tasks, derive a task number field based on the last part of the id
-# TODO: list_schedules should have a changessince parameter
 
 # @app.post(
 #     "/list/dataverse",

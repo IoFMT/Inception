@@ -114,7 +114,7 @@ if "SFG20_URL" in os.environ:
     SFG20_URL = os.environ.get("SFG20_URL")
 
 SFG20_QUERY_001 = """query ExampleQuery {{
-  regime(shareLinkId: "{0}", accessToken: "{1}") {{
+  regime(shareLinkId: "{0}", accessToken: "{1}", changesSince: "{2}") {{
     words
     guid
     schedules {{
