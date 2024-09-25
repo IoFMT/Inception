@@ -1,48 +1,205 @@
 {
-  "swagger": "2.0",
   "info": {
-    "description": "This is a rest API for the IoFMT project",
     "title": "IoFMT REST API",
-    "version": "0.1.0",
+    "summary": "This is a REST API for IoFMT Inception project",
+    "description": "This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance.\n        <br><br>\n        This API is also mapped in a Power Platform Custom Connector.\n        <br><br>\n        To generate the API KEY for a customer, please go to: <a href='/admin' target='_blank'>Admin</a>",
+    "version": "1.0.0",
     "x-logo": {
       "url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png"
-    }
-  },
-  "host": "iofmtapi.azurewebsites.net",
-  "basePath": "/",
-  "schemes": [
-    "https"
-  ],
-  "consumes": [],
-  "produces": [],
-  "securityDefinitions": {
-    "APIKeyAuth": {
-      "type": "apiKey",
-      "in": "header",
-      "name": "X-Access-Token"
     }
   },
   "paths": {
     "/": {
       "get": {
-        "parameters": [],
+        "tags": [
+          "Basic"
+        ],
+        "summary": "Get Api Status",
+        "operationId": "get_api_status__get",
         "responses": {
           "200": {
             "description": "Successful Response",
-            "schema": {}
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
           }
         },
-        "security": [],
-        "tags": [
-          "Version 1"
-        ],
-        "operationId": "get_root__get",
-        "summary": "Get Root"
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ]
       }
     },
-    "/list": {
+    "/schedules": {
+      "post": {
+        "tags": [
+          "SFG20"
+        ],
+        "summary": "Get Schedules",
+        "description": "Search SFG20 schedules according to the parameters provided and load into the cache",
+        "operationId": "get_schedules_schedules_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SearchTerm"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/shared-links": {
       "get": {
+        "tags": [
+          "SFG20"
+        ],
+        "summary": "Get Shared Links",
+        "description": "List the SFG20 shared links available for the user",
+        "operationId": "get_shared_links_shared_links_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
         "parameters": [],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/task/complete": {
+      "post": {
+        "tags": [
+          "SFG20"
+        ],
+        "summary": "Complete Task",
+        "description": "Mark a task as completed in SFG20",
+        "operationId": "complete_task_task_complete_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Task"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/task_group/complete": {
+      "post": {
+        "tags": [
+          "SFG20"
+        ],
+        "summary": "Complete Task Group",
+        "description": "Mark a group of tasks as completed in SFG20",
+        "operationId": "complete_task_group_task_group_complete_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/TaskGroup"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/cache": {
+      "post": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Get From Cache",
+        "description": "List the data in the cache according to the parameters provided. When a parameter is",
+        "operationId": "get_from_cache_cache_post",
         "security": [
           {
             "APIKeyAuth": []
@@ -51,22 +208,50 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "schema": {}
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
           }
         },
-        "tags": [
-          "Version 1"
-        ],
-        "operationId": "get_list_dataverse_list_get",
-        "summary": "Get List Dataverse"
-      }
-    },
-    "/retrieve/{template_id}": {
-      "get": {
         "parameters": [
           {
-            "in": "path",
-            "name": "template_id",
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/CacheParameters"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Cache"
+        ],
+        "summary": "Delete From Cache",
+        "description": "Delete all the data in the cache for the selected user",
+        "operationId": "delete_from_cache_cache_delete",
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
             "required": true,
             "type": "string"
           }
@@ -74,7 +259,9 @@
         "responses": {
           "200": {
             "description": "Successful Response",
-            "schema": {}
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -83,29 +270,83 @@
             }
           }
         },
-        "tags": [
-          "Version 1"
-        ],
-        "operationId": "get_retrieve_template_retrieve__template_id__get",
-        "summary": "Get Retrieve Template"
+        "produces": [
+          "application/json"
+        ]
       }
     },
-    "/save": {
+    "/config/add": {
       "post": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Config Add",
+        "description": "Add a new configuration to the Config table",
+        "operationId": "config_add_config_add_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
         "parameters": [
           {
-            "in": "body",
-            "name": "body",
             "required": true,
+            "name": "body",
+            "in": "body",
             "schema": {
-              "$ref": "#/definitions/Template"
+              "$ref": "#/definitions/Config"
             }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/config/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Config Delete",
+        "description": "Delete the configuration from the Config table",
+        "operationId": "config_delete_config_delete__id__delete",
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "schema": {}
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -114,29 +355,38 @@
             }
           }
         },
-        "tags": [
-          "Version 1"
-        ],
-        "operationId": "post_save_template_save_post",
-        "summary": "Post Save Template"
+        "produces": [
+          "application/json"
+        ]
       }
     },
-    "/search": {
-      "post": {
+    "/config/get/{id}": {
+      "get": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Config Select",
+        "description": "Select a configuration from the Config table",
+        "operationId": "config_select_config_get__id__get",
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
         "parameters": [
           {
-            "in": "body",
-            "name": "body",
+            "name": "id",
+            "in": "path",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/SearchTerm"
-            }
+            "type": "string"
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "schema": {}
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -145,93 +395,502 @@
             }
           }
         },
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/config/token": {
+      "get": {
         "tags": [
-          "Version 1"
+          "Config"
         ],
-        "operationId": "get_search_search_post",
-        "summary": "Get Search"
+        "summary": "Config Select Token",
+        "description": "Delete the configuration from the Config table",
+        "operationId": "config_select_token_config_token_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/config/shared_links": {
+      "get": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Get Shared Links",
+        "description": "Get the shared links for the user",
+        "operationId": "get_shared_links_config_shared_links_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [],
+        "produces": [
+          "application/json"
+        ]
+      },
+      "post": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Add Shared Link",
+        "description": "Add a new shared link for the user",
+        "operationId": "add_shared_link_config_shared_links_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/SharedLinks"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ]
+      }
+    },
+    "/config/shared_links/{id}": {
+      "delete": {
+        "tags": [
+          "Config"
+        ],
+        "summary": "Delete Shared Link",
+        "description": "Delete a shared link for the user",
+        "operationId": "delete_shared_link_config_shared_links__id__delete",
+        "security": [
+          {
+            "APIKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "schema": {
+              "$ref": "#/definitions/Result"
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
+          }
+        },
+        "produces": [
+          "application/json"
+        ]
       }
     }
   },
+  "tags": [
+    {
+      "name": "Basic",
+      "description": "Endpoint without authentication to check the API status."
+    },
+    {
+      "name": "SFG20",
+      "description": "Endpoints to integrate with SFG20 API and our internal cache."
+    },
+    {
+      "name": "Config",
+      "description": "Endpoints to access the configuration data."
+    },
+    {
+      "name": "Cache",
+      "description": "Endpoints to interact with the internal cache."
+    }
+  ],
+  "swagger": "2.0",
   "definitions": {
+    "CacheParameters": {
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "title": "User ID",
+          "description": "The ID of the user",
+          "example": "admin@iofmt.com"
+        },
+        "sharelink_id": {
+          "type": "string",
+          "title": "Sharelink ID",
+          "description": "The ID of the SFG20 sharelink"
+        },
+        "schedule_id": {
+          "title": "Schedule ID",
+          "description": "The ID of the SFG20 schedule"
+        },
+        "type": {
+          "title": "Type",
+          "description": "The type of the entity",
+          "example": "schedules"
+        },
+        "order_field": {
+          "title": "Order Field",
+          "description": "The field to order the data by"
+        },
+        "order_direction": {
+          "title": "Order Direction",
+          "description": "The direction to order the data by"
+        }
+      },
+      "type": "object",
+      "required": [
+        "user_id",
+        "sharelink_id"
+      ],
+      "title": "CacheParameters"
+    },
+    "Config": {
+      "properties": {
+        "api_key": {
+          "type": "string",
+          "title": "API Key",
+          "description": "The newly generated API Key"
+        },
+        "customer_name": {
+          "type": "string",
+          "title": "Customer Name",
+          "description": "The name of the SFG20 customer"
+        },
+        "access_token": {
+          "type": "string",
+          "title": "Access Token",
+          "description": "The Access Token provided by SFG20"
+        }
+      },
+      "type": "object",
+      "required": [
+        "api_key",
+        "customer_name",
+        "access_token"
+      ],
+      "title": "Config"
+    },
+    "Entities": {
+      "type": "string",
+      "enum": [
+        "all",
+        "schedules",
+        "assets",
+        "tasks",
+        "frequencies",
+        "skills",
+        "classifications"
+      ],
+      "title": "Entities"
+    },
     "HTTPValidationError": {
       "properties": {
         "detail": {
           "items": {
             "$ref": "#/definitions/ValidationError"
           },
-          "title": "Detail",
-          "type": "array"
+          "type": "array",
+          "title": "Detail"
         }
       },
-      "title": "HTTPValidationError",
-      "type": "object"
+      "type": "object",
+      "title": "HTTPValidationError"
+    },
+    "Result": {
+      "properties": {
+        "status": {
+          "type": "string",
+          "title": "Status",
+          "description": "The status of the request"
+        },
+        "message": {
+          "type": "string",
+          "title": "Message",
+          "description": "The message of the request"
+        },
+        "data": {
+          "items": {
+            "type": "object"
+          },
+          "type": "array",
+          "title": "Data",
+          "description": "The data of the request"
+        }
+      },
+      "type": "object",
+      "required": [
+        "status",
+        "message",
+        "data"
+      ],
+      "title": "Result"
     },
     "SearchTerm": {
       "properties": {
-        "term": {
-          "title": "Term",
-          "type": "string"
-        }
-      },
-      "required": [
-        "term"
-      ],
-      "title": "SearchTerm",
-      "type": "object"
-    },
-    "Template": {
-      "properties": {
-        "cr17a_id": {
-          "title": "Cr17A Id",
-          "type": "string"
+        "sharelink_id": {
+          "type": "string",
+          "title": "Sharelink ID",
+          "description": "The ID of the SFG20 sharelink"
         },
-        "cr17a_name": {
-          "title": "Cr17A Name",
-          "type": "string"
+        "access_token": {
+          "type": "string",
+          "title": "Access Token",
+          "description": "The Access Token provided by SFG20"
+        },
+        "user_id": {
+          "type": "string",
+          "title": "User ID",
+          "description": "The ID of the user"
+        },
+        "changes_since": {
+          "title": "Changes Since",
+          "description": "The date of changes since the last update"
         }
       },
+      "type": "object",
       "required": [
-        "cr17a_id",
-        "cr17a_name"
+        "sharelink_id",
+        "access_token",
+        "user_id"
       ],
-      "title": "Template",
-      "type": "object"
+      "title": "SearchTerm"
+    },
+    "SharedLinks": {
+      "properties": {
+        "api_key": {
+          "type": "string",
+          "title": "API Key",
+          "description": "The generated API Key"
+        },
+        "id": {
+          "type": "string",
+          "title": "ID",
+          "description": "The ID of the SFG20 shared link"
+        },
+        "link_name": {
+          "type": "string",
+          "title": "Link Name",
+          "description": "The name of the shared link"
+        },
+        "url": {
+          "type": "string",
+          "title": "URL",
+          "description": "The URL of the shared link"
+        }
+      },
+      "type": "object",
+      "required": [
+        "api_key",
+        "id",
+        "link_name",
+        "url"
+      ],
+      "title": "SharedLinks"
+    },
+    "Task": {
+      "properties": {
+        "sharelink_id": {
+          "type": "string",
+          "title": "Shared Link ID",
+          "description": "The ID of the shared link"
+        },
+        "access_token": {
+          "type": "string",
+          "title": "Access Token",
+          "description": "The Access Token provided by SFG20"
+        },
+        "asset_id": {
+          "type": "string",
+          "title": "Asset ID",
+          "description": "The ID of the asset"
+        },
+        "asset_index": {
+          "type": "integer",
+          "title": "Asset Index",
+          "description": "The index of the asset"
+        },
+        "task_id": {
+          "type": "string",
+          "title": "Task ID",
+          "description": "The ID of the task"
+        },
+        "completion_date": {
+          "type": "string",
+          "title": "Completion Date",
+          "description": "The date of completion"
+        }
+      },
+      "type": "object",
+      "required": [
+        "sharelink_id",
+        "access_token",
+        "asset_id",
+        "asset_index",
+        "task_id",
+        "completion_date"
+      ],
+      "title": "Task"
+    },
+    "TaskGroup": {
+      "properties": {
+        "sharelink_id": {
+          "type": "string",
+          "title": "Shared Link ID",
+          "description": "The ID of the shared link"
+        },
+        "access_token": {
+          "type": "string",
+          "title": "Access Token",
+          "description": "The Access Token provided by SFG20"
+        },
+        "completion_date": {
+          "type": "string",
+          "title": "Completion Date",
+          "description": "The date of completion"
+        },
+        "schedule_id": {
+          "type": "string",
+          "title": "Schedule ID",
+          "description": "The ID of the schedule"
+        },
+        "visit": {
+          "title": "Visit",
+          "description": "The visit number"
+        },
+        "asset_id": {
+          "type": "string",
+          "title": "Asset ID",
+          "description": "The ID of the asset"
+        },
+        "tasks_completed": {
+          "items": {
+            "$ref": "#/definitions/TaskGroupItem"
+          },
+          "type": "array",
+          "title": "Tasks Completed",
+          "description": "The tasks completed"
+        }
+      },
+      "type": "object",
+      "required": [
+        "sharelink_id",
+        "access_token",
+        "completion_date",
+        "schedule_id",
+        "asset_id",
+        "tasks_completed"
+      ],
+      "title": "TaskGroup"
+    },
+    "TaskGroupItem": {
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "title": "Task ID",
+          "description": "The ID of the task"
+        },
+        "duration_minutes": {
+          "type": "integer",
+          "title": "Duration Minutes",
+          "description": "The duration of the task in minutes"
+        },
+        "completion_date": {
+          "type": "string",
+          "title": "Completion Date",
+          "description": "The date of completion"
+        }
+      },
+      "type": "object",
+      "required": [
+        "task_id",
+        "duration_minutes",
+        "completion_date"
+      ],
+      "title": "TaskGroupItem"
     },
     "ValidationError": {
       "properties": {
         "loc": {
-          "items": {
-            "type": "string"
-          },
-          "title": "Location",
-          "type": "array"
+          "items": {},
+          "type": "array",
+          "title": "Location"
         },
         "msg": {
-          "title": "Message",
-          "type": "string"
+          "type": "string",
+          "title": "Message"
         },
         "type": {
-          "title": "Error Type",
-          "type": "string"
+          "type": "string",
+          "title": "Error Type"
         }
       },
+      "type": "object",
       "required": [
         "loc",
         "msg",
         "type"
       ],
-      "title": "ValidationError",
-      "type": "object"
+      "title": "ValidationError"
     }
   },
-  "parameters": {},
-  "responses": {},
-  "tags": [],
-  "x-components": {},
-  "security": [
-    {
-      "APIKeyAuth": []
+  "securityDefinitions": {
+    "APIKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "X-Access-Token"
     }
-  ]
+  },
+  "x-components": {}
 }

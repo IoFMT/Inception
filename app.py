@@ -122,7 +122,7 @@ app.openapi = custom_openapi
 # -------------------------------------------------
 # Endpoints
 # -------------------------------------------------
-@app.get("/", tags=["Basic"], response_model=Result)
+@app.get("/", tags=["Basic"], response_model=Result, operation_id="get_api_status")
 async def get_api_status() -> Any:
     return {
         "status": "OK",
@@ -153,6 +153,7 @@ async def admin(
     tags=["SFG20"],
     response_model=Result,
     description="Search SFG20 schedules according to the parameters provided and load into the cache",
+    operation_id="get_schedules",
 )
 async def get_schedules(
     search: SearchTerm,
@@ -180,6 +181,7 @@ async def get_schedules(
     tags=["SFG20"],
     response_model=Result,
     description="List the SFG20 shared links available for the user",
+    operation_id="get_shared_links",
 )
 async def get_shared_links(
     api_key: security_router.APIKey = security_router.Depends(
@@ -236,6 +238,7 @@ async def get_shared_links(
     tags=["SFG20"],
     response_model=Result,
     description="Mark a task as completed in SFG20",
+    operation_id="complete_task",
 )
 async def complete_task(
     task: Task,
@@ -261,6 +264,7 @@ async def complete_task(
     tags=["SFG20"],
     response_model=Result,
     description="Mark a group of tasks as completed in SFG20",
+    operation_id="complete_task_group",
 )
 async def complete_task_group(
     task: TaskGroup,
@@ -289,6 +293,7 @@ async def complete_task_group(
     tags=["Cache"],
     response_model=Result,
     description="List the data in the cache according to the parameters provided. When a parameter is ",
+    operation_id="get_from_cache",
 )
 async def get_from_cache(
     cacheParams: CacheParameters,
@@ -312,6 +317,7 @@ async def get_from_cache(
     tags=["Cache"],
     response_model=Result,
     description="Delete all the data in the cache for the selected user",
+    operation_id="delete_from_cache",
 )
 async def delete_from_cache(
     user_id: str,
@@ -339,6 +345,7 @@ async def delete_from_cache(
     tags=["Config"],
     response_model=Result,
     description="Add a new configuration to the Config table",
+    operation_id="config_add",
 )
 async def config_add(
     data: Config,
@@ -363,6 +370,7 @@ async def config_add(
     tags=["Config"],
     response_model=Result,
     description="Delete the configuration from the Config table",
+    operation_id="config_delete",
 )
 async def config_delete(
     id: str,
@@ -387,6 +395,7 @@ async def config_delete(
     tags=["Config"],
     response_model=Result,
     description="Select a configuration from the Config table",
+    operation_id="config_select",
 )
 async def config_select(
     id: str,
@@ -410,6 +419,7 @@ async def config_select(
     tags=["Config"],
     response_model=Result,
     description="Delete the configuration from the Config table",
+    operation_id="config_select_token",
 )
 async def config_select_token(
     api_key: security_router.APIKey = security_router.Depends(
@@ -436,8 +446,9 @@ async def config_select_token(
     tags=["Config"],
     response_model=Result,
     description="Get the shared links for the user",
+    operation_id="config_select_shared_links",
 )
-async def get_shared_links(
+async def config_shared_links(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
@@ -458,6 +469,7 @@ async def get_shared_links(
     tags=["Config"],
     response_model=Result,
     description="Delete a shared link for the user",
+    operation_id="config_delete_shared_link",
 )
 async def delete_shared_link(
     id: str,
@@ -482,6 +494,7 @@ async def delete_shared_link(
     tags=["Config"],
     response_model=Result,
     description="Add a new shared link for the user",
+    operation_id="config_add_shared_link",
 )
 async def add_shared_link(
     data: SharedLinks,
@@ -500,8 +513,6 @@ async def add_shared_link(
         response = [{"error": str(e)}]
     return {"status": status, "message": message, "data": response}
 
-
-# TODO: two endpoints for saving data in SFG20
 
 # @app.post(
 #     "/list/dataverse",
