@@ -58,6 +58,7 @@ CACHE_DB_FIELDS = {
         "schedule.code",
         "schedule.version",
         "steps",
+        "_status",
     ],
     "assets": ["id", "description"],
     "frequencies": ["label", "label"],
@@ -75,10 +76,15 @@ CACHE_SQL_INSERT = """INSERT INTO public.sfg20_data (user_id, sharelink_id, sche
 
 CACHE_SQL_CLEAR = """DELETE FROM public.sfg20_data WHERE user = :p1"""
 
-CACHE_SQL_INSERT_CONFIG = """INSERT INTO public.config (api_key, customer_name, access_token, shared_links) VALUES (:p1, :p2, :p3, :p4)"""
+CACHE_SQL_INSERT_CONFIG = """INSERT INTO public.config (api_key, customer_name, access_token) VALUES (:p1, :p2, :p3)"""
 
 CACHE_SQL_DELETE_CONFIG = """DELETE FROM public.config WHERE api_key = :p1"""
 
+CACHE_SQL_DELETE_SHARED_LINKS = (
+    """DELETE FROM config_shared_links WHERE api_key = :p1 and id = :p2"""
+)
+
+CACHE_SQL_INSERT__SHARED_LINKS = "INSERT INTO config_shared_links (api_key, id, link_name, url) VALUES (:p1, :p2, :p3, :p4)"
 
 # -------------------------------------------------
 # Dataverse Configuration
@@ -193,7 +199,47 @@ SFG20_QUERY_001 = """query ExampleQuery {{
       }}
     }}
   }}
-}}"""
+}}
+"""
+
+SFG20_QUERY_002 = """mutation CompleteSharedTask {{
+  completeSharedTask(
+    shareLinkId: "{0}"
+    accessToken: "{1}"
+    completions: [
+      {{
+        assetId: "{2}"
+        assetIndex: {3}
+        taskId: "{4}"
+        completionDate: "{5}"
+        metadata: null
+      }}
+    ]
+  )
+}}
+"""
+
+SFG20_QUERY_003 = """mutation RecordTaskCompletions {{
+  recordTaskCompletions(
+    shareLinkID: "{0}"
+    accessToken: "{1}"
+    completedDateTime: "{2}" 
+    scheduleID: "{3}"
+    visit: "{4}"
+    assetID: "{5}"
+    tasksCompleted: [
+      {6}
+    ]
+  )
+}}
+"""
+
+SFG20_QUERY_003_ITEM = """{{
+  taskID: "{0}"
+  durationInMinutes: {1}
+  completedDateTime: "{2}"
+}}
+"""
 
 SFG20_SHP_LIST = "https://graph.microsoft.com/v1.0/sites/{0}/lists/{1}/items"
 

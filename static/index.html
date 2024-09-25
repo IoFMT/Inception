@@ -40,14 +40,6 @@
             </div>
           </div>
           <div class="field">
-            <label class="label">List of Shared Link IDs</label>
-            <div class="control">
-              <textarea class="textarea" id="shared-link-ids" placeholder="Enter shared link IDs, separated by commas"
-                required></textarea>
-            </div>
-          </div>
-          <div class="field">Example: shareLinkID#Name,shareLinkID,Name, ...</div>
-          <div class="field">
             <button class="button is-primary" id="generate-api-key">Generate API Key</button>
           </div>
         </form>
@@ -57,10 +49,9 @@
         <table class="table is-fullwidth">
           <thead>
             <tr>
+              <th>API Key</th>
               <th>Customer Name</th>
               <th>Access Token</th>
-              <th>API Key</th>
-              <th>Shared Links</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -89,12 +80,11 @@
 
       const customerName = document.getElementById('customer-name').value;
       const accessToken = document.getElementById('access-token').value;
-      const sharedLinkIds = document.getElementById('shared-link-ids').value;
 
       // Generate API key (replace with your actual key generation logic)
       const apiKey = `ak_${Math.random().toString(36).substring(2, 15)}`;
 
-      if (customerName === '' || accessToken === '' || sharedLinkIds === '') {
+      if (customerName === '' || accessToken === '') {
         alert('Please fill in all fields.');
         return;
       }
@@ -108,8 +98,7 @@
         body: JSON.stringify({
           api_key: apiKey,
           customer_name: customerName,
-          access_token: accessToken,
-          shared_links: sharedLinkIds
+          access_token: accessToken
         })
       });
 
@@ -137,6 +126,10 @@
         apiKeys.forEach((apiKey) => {
           const row = document.createElement('tr');
 
+          const apiKeyCell = document.createElement('td');
+          apiKeyCell.textContent = apiKey.api_key;
+          row.appendChild(apiKeyCell);
+
           const customerNameCell = document.createElement('td');
           customerNameCell.textContent = apiKey.customer_name;
           row.appendChild(customerNameCell);
@@ -144,14 +137,6 @@
           const accessTokenCell = document.createElement('td');
           accessTokenCell.textContent = apiKey.access_token;
           row.appendChild(accessTokenCell);
-
-          const apiKeyCell = document.createElement('td');
-          apiKeyCell.textContent = apiKey.api_key;
-          row.appendChild(apiKeyCell);
-
-          const sharedLinksCell = document.createElement('td');
-          sharedLinksCell.textContent = apiKey.shared_links;
-          row.appendChild(sharedLinksCell);
 
           const actionCell = document.createElement('td');
           const deleteButton = document.createElement('button');
@@ -165,7 +150,7 @@
                 method: 'GET',
                 headers: {
                   'Content-Type': 'application/json',
-                  'X-Access-Token': '{{master_api_key}}'
+                  'X-Access-Token': apiKey.api_key
                 },
               }).then(() => {
                 renderApiKeyList();

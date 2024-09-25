@@ -2,13 +2,12 @@
 
 import json
 
-from sqlalchemy import create_engine, desc, select, text
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 
 from libs import config
-from entities.sfg20 import CacheParameters, Entities, sfg20_data
-from entities.base import Config
+from entities.base import Config, CacheParameters, Entities
 
 engine = None
 SessionLocal = None
@@ -109,12 +108,7 @@ def add_config(data: Config):
     db = get_db()
 
     stmt = text(config.CACHE_SQL_INSERT_CONFIG)
-    stmt = stmt.bindparams(
-        p1=data.api_key,
-        p2=data.customer_name,
-        p3=data.access_token,
-        p4=data.shared_links,
-    )
+    stmt = stmt.bindparams(p1=data.api_key, p2=data.customer_name, p3=data.access_token)
     db.execute(stmt)
     db.commit()
 
@@ -132,43 +126,55 @@ def select_config(api_key):
 
     stmt = None
     if api_key == "all":
-        stmt = text(
-            "SELECT api_key, customer_name, access_token, shared_links FROM config"
-        )
+        stmt = text("SELECT api_key, customer_name, access_token FROM config")
     else:
-        stmt = text("SELECT access_token, shared_links FROM config WHERE api_key = :p1")
+        stmt = text(
+            "SELECT api_key, customer_name, access_token FROM config WHERE api_key = :p1"
+        )
         stmt = stmt.bindparams(p1=api_key)
 
     result = db.execute(stmt).fetchall()
 
     results = []
     for res in result:
-        raw_shared_links = [item for item in res[1].split(",")]
-        shared_links = []
-        if api_key != "all":
-            for item in raw_shared_links:
-                record = {}
-                if "#" in item:
-                    record["id"] = item.split("#")[0]
-                    record["name"] = item.split("#")[1]
-                else:
-                    record["id"] = item
-                    record["name"] = "Name not provided"
-                record["url"] = (
-                    "https://www.demo.facilities-iq.com/app/facilities?share={0}".format(
-                        record["id"]
-                    )
-                )
-                shared_links.append(record)
-            results.append({"access_token": res[0], "shared_links": shared_links})
-        else:
-            results.append(
-                {
-                    "api_key": res[0],
-                    "customer_name": res[1],
-                    "access_token": res[2],
-                    "shared_links": res[3],
-                }
-            )
+        results.append(
+            {"api_key": res[0], "customer_name": res[1], "access_token": res[2]}
+        )
 
     return results
+
+
+def select_shared_links(api_key):
+    db = get_db()
+
+    stmt = text(
+        "SELECT id, link_name, url FROM config_shared_links WHERE api_key = :p1"
+    )
+    stmt = stmt.bindparams(p1=api_key)
+
+    result = db.execute(stmt).fetchall()
+
+    results = []
+    for res in result:
+        results.append({"id": res[0], "name": res[1], "url": res[2]})
+
+    return results
+
+
+def delete_shared_links(api_key, id):
+    db = get_db()
+
+    stmt = text(config.CACHE_SQL_DELETE_SHARED_LINKS)
+    stmt = stmt.bindparams(p1=api_key, p2=id)
+
+    db.execute(stmt)
+    db.commit()
+
+
+def add_shared_links(data):
+    db = get_db()
+
+    stmt = text(config.CACHE_SQL_INSERT__SHARED_LINKS)
+    stmt = stmt.bindparams(p1=data.api_key, p2=data.id, p3=data.link_name, p4=data.url)
+    db.execute(stmt)
+    db.commit()

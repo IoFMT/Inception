@@ -4,7 +4,7 @@ import json
 import requests
 
 from libs import config
-from entities.sfg20 import SearchTerm
+from entities.base import SearchTerm, Task, TaskGroup
 
 
 def parse_data(data, user, sharelink, key, type):
@@ -105,5 +105,49 @@ def retrieve_all_data(searchItem: SearchTerm):
     return schedules
 
 
-def save_task():
-    pass
+def complete_task(task: Task):
+    query = config.SFG20_QUERY_003.format(
+        task.sharelink_id,
+        task.access_token,
+        task.asset_id,
+        task.asset_index,
+        task.task_id,
+        task.completion_date,
+    )
+
+    body = {
+        "query": query,
+    }
+
+    response = requests.post(config.SFG20_URL, json=body)
+    return response.json()
+
+
+def complete_task_group(task: TaskGroup):
+    items = []
+    for item in task.tasks_completed:
+        record = config.SFG20_QUERY_003_ITEM.format(
+            item.task_id, item.duration_minutes, item.completion_date
+        )
+        items.append(record)
+
+    items_formatted = " \n".join(items)
+
+    query = config.SFG20_QUERY_003.format(
+        task.sharelink_id,
+        task.access_token,
+        task.completion_date,
+        task.schedule_id,
+        task.visit,
+        task.asset_id,
+        items_formatted,
+    )
+
+    print(query)
+
+    body = {
+        "query": query,
+    }
+
+    response = requests.post(config.SFG20_URL, json=body)
+    return response.json()

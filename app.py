@@ -21,12 +21,19 @@ from fastapi.templating import Jinja2Templates
 
 
 from routers import security_router
-from entities.sfg20 import CacheParameters, SearchTerm
-from entities.base import Config, Result
+from entities.base import (
+    Config,
+    Result,
+    SharedLinks,
+    CacheParameters,
+    SearchTerm,
+    Task,
+    TaskGroup,
+)
 from services import sfg20 as sv_sfg20
 from services import cache
 from libs import config
-from libs.utils import decode
+from libs.utils import decode, encode
 
 # from entities.template import Template, Report, Task, Tables
 # from services import dataverse as sv_dataverse
@@ -69,13 +76,13 @@ def custom_openapi():
         return app.openapi_schema
     openapi_schema = get_openapi(
         title="IoFMT REST API",
-        version="0.5.0",
+        version="1.0.0",
         summary="This is a REST API for IoFMT Inception project",
         description="""This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance.
         <br><br>
         This API is also mapped in a Power Platform Custom Connector.
         <br><br>
-        To generate the API KEY for a customer, please go to: <a href='https://iofmtapi.azurewebsites.net/admin' target='_blank'>Admin</a>""",
+        To generate the API KEY for a customer, please go to: <a href='/admin' target='_blank'>Admin</a>""",
         routes=app.routes,
         openapi_version="3.0.2",
         tags=sv_sfg20.config.tags_metadata,
@@ -120,7 +127,7 @@ async def get_api_status() -> Any:
     return {
         "status": "OK",
         "message": "IoFMT REST API is running",
-        "data": [{"version": "0.3.0"}],
+        "data": [{"version": "1.0.0"}],
     }
 
 
@@ -138,8 +145,11 @@ async def admin(
     )
 
 
+# -------------------------------------------------
+# SFG20 endpoints
+# -------------------------------------------------
 @app.post(
-    "/search",
+    "/schedules",
     tags=["SFG20"],
     response_model=Result,
     description="Search SFG20 schedules according to the parameters provided and load into the cache",
@@ -166,17 +176,17 @@ async def get_schedules(
 
 
 @app.get(
-    "/list/links",
+    "/shared-links",
     tags=["SFG20"],
     response_model=Result,
     description="List the SFG20 shared links available for the user",
 )
-async def get_list_links(
+async def get_shared_links(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ) -> Any:
-    if api_key == config.GLOBAL_API_KEY:
+    if encode(api_key) == config.GLOBAL_API_KEY:
         url = "https://api.demo.facilities-iq.com/graphql?o=GetMyShareLinks"
 
         headers = {
@@ -211,8 +221,8 @@ async def get_list_links(
             }
             data.append(record)
     else:
-        response = cache.select_config(api_key)
-        data = response[0]["shared_links"]
+        response = cache.select_shared_links(api_key)
+        data = response
 
     return {
         "status": "OK",
@@ -222,7 +232,60 @@ async def get_list_links(
 
 
 @app.post(
-    "/list/cache",
+    "/task/complete",
+    tags=["SFG20"],
+    response_model=Result,
+    description="Mark a task as completed in SFG20",
+)
+async def complete_task(
+    task: Task,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+) -> Any:
+    status = "OK"
+    message = "Task marked as completed in SFG20"
+    try:
+        resp = sv_sfg20.complete_task(task)
+        response = [resp]
+    except Exception as e:
+        status = "Error"
+        message = "Error marking task as completed in SFG20"
+        response = [{"error": str(e)}]
+        print(traceback.format_exc())
+    return {"status": status, "message": message, "data": response}
+
+
+@app.post(
+    "/task_group/complete",
+    tags=["SFG20"],
+    response_model=Result,
+    description="Mark a group of tasks as completed in SFG20",
+)
+async def complete_task_group(
+    task: TaskGroup,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+) -> Any:
+    status = "OK"
+    message = "Task marked as completed in SFG20"
+    try:
+        resp = sv_sfg20.complete_task_group(task)
+        response = [resp]
+    except Exception as e:
+        status = "Error"
+        message = "Error marking task as completed in SFG20"
+        response = [{"error": str(e)}]
+        print(traceback.format_exc())
+    return {"status": status, "message": message, "data": response}
+
+
+# -------------------------------------------------
+# Cache endpoints
+# -------------------------------------------------
+@app.post(
+    "/cache",
     tags=["Cache"],
     response_model=Result,
     description="List the data in the cache according to the parameters provided. When a parameter is ",
@@ -244,8 +307,8 @@ async def get_from_cache(
     return {"status": status, "message": message, "data": response}
 
 
-@app.get(
-    "/delete/cache",
+@app.delete(
+    "/cache",
     tags=["Cache"],
     response_model=Result,
     description="Delete all the data in the cache for the selected user",
@@ -268,6 +331,9 @@ async def delete_from_cache(
     return {"status": status, "message": message, "data": response}
 
 
+# -------------------------------------------------
+# Config endpoints
+# -------------------------------------------------
 @app.post(
     "/config/add",
     tags=["Config"],
@@ -292,7 +358,7 @@ async def config_add(
     return {"status": status, "message": message, "data": response}
 
 
-@app.get(
+@app.delete(
     "/config/delete/{id}",
     tags=["Config"],
     response_model=Result,
@@ -320,7 +386,7 @@ async def config_delete(
     "/config/get/{id}",
     tags=["Config"],
     response_model=Result,
-    description="Delete the configuration from the Config table",
+    description="Select a configuration from the Config table",
 )
 async def config_select(
     id: str,
@@ -345,7 +411,7 @@ async def config_select(
     response_model=Result,
     description="Delete the configuration from the Config table",
 )
-def config_select_token(
+async def config_select_token(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
@@ -358,6 +424,79 @@ def config_select_token(
     except Exception as e:
         status = "Error"
         message = "Error retrieving data from Config table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
+
+
+# -------------------------------------------------
+# Shared Links endpoints
+# -------------------------------------------------
+@app.get(
+    "/config/shared_links",
+    tags=["Config"],
+    response_model=Result,
+    description="Get the shared links for the user",
+)
+async def get_shared_links(
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+) -> Any:
+    status = "OK"
+    message = "Data retrieved successfully from Shared_Links table"
+    try:
+        response = cache.select_shared_links(str(api_key))
+    except Exception as e:
+        status = "Error"
+        message = "Error retrieving data from Shared_Links table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
+
+
+@app.delete(
+    "/config/shared_links/{id}",
+    tags=["Config"],
+    response_model=Result,
+    description="Delete a shared link for the user",
+)
+async def delete_shared_link(
+    id: str,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+):
+    status = "OK"
+    message = "Data deleted successfully in Shared_Links table"
+    response = []
+    try:
+        cache.delete_shared_links(str(api_key), id)
+    except Exception as e:
+        status = "Error"
+        message = "Error deleting data in Shared_Links table"
+        response = [{"error": str(e)}]
+    return {"status": status, "message": message, "data": response}
+
+
+@app.post(
+    "/config/shared_links",
+    tags=["Config"],
+    response_model=Result,
+    description="Add a new shared link for the user",
+)
+async def add_shared_link(
+    data: SharedLinks,
+    api_key: security_router.APIKey = security_router.Depends(
+        security_router.get_api_key
+    ),
+):
+    status = "OK"
+    message = "Data saved successfully in Shared_Links table"
+    try:
+        cache.add_shared_links(data)
+        response = []
+    except Exception as e:
+        status = "Error"
+        message = "Error saving data in Shared_Links table"
         response = [{"error": str(e)}]
     return {"status": status, "message": message, "data": response}
 
