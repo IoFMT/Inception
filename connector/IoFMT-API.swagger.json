@@ -15,7 +15,7 @@
           "Basic"
         ],
         "summary": "Get Api Status",
-        "operationId": "get_api_status__get",
+        "operationId": "get_api_status",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -37,7 +37,7 @@
         ],
         "summary": "Get Schedules",
         "description": "Search SFG20 schedules according to the parameters provided and load into the cache",
-        "operationId": "get_schedules_schedules_post",
+        "operationId": "get_schedules",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -54,7 +54,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -82,7 +88,7 @@
         ],
         "summary": "Get Shared Links",
         "description": "List the SFG20 shared links available for the user",
-        "operationId": "get_shared_links_shared_links_get",
+        "operationId": "get_shared_links",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -93,7 +99,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [],
@@ -109,7 +121,7 @@
         ],
         "summary": "Complete Task",
         "description": "Mark a task as completed in SFG20",
-        "operationId": "complete_task_task_complete_post",
+        "operationId": "complete_task",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -126,7 +138,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -154,7 +172,7 @@
         ],
         "summary": "Complete Task Group",
         "description": "Mark a group of tasks as completed in SFG20",
-        "operationId": "complete_task_group_task_group_complete_post",
+        "operationId": "complete_task_group",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -171,7 +189,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -199,10 +223,16 @@
         ],
         "summary": "Get From Cache",
         "description": "List the data in the cache according to the parameters provided. When a parameter is",
-        "operationId": "get_from_cache_cache_post",
+        "operationId": "get_from_cache",
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "responses": {
@@ -242,10 +272,16 @@
         ],
         "summary": "Delete From Cache",
         "description": "Delete all the data in the cache for the selected user",
-        "operationId": "delete_from_cache_cache_delete",
+        "operationId": "delete_from_cache",
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -282,7 +318,7 @@
         ],
         "summary": "Config Add",
         "description": "Add a new configuration to the Config table",
-        "operationId": "config_add_config_add_post",
+        "operationId": "config_add",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -299,7 +335,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -327,10 +369,16 @@
         ],
         "summary": "Config Delete",
         "description": "Delete the configuration from the Config table",
-        "operationId": "config_delete_config_delete__id__delete",
+        "operationId": "config_delete",
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -367,10 +415,16 @@
         ],
         "summary": "Config Select",
         "description": "Select a configuration from the Config table",
-        "operationId": "config_select_config_get__id__get",
+        "operationId": "config_select",
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -407,7 +461,7 @@
         ],
         "summary": "Config Select Token",
         "description": "Delete the configuration from the Config table",
-        "operationId": "config_select_token_config_token_get",
+        "operationId": "config_select_token",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -418,7 +472,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [],
@@ -432,9 +492,9 @@
         "tags": [
           "Config"
         ],
-        "summary": "Get Shared Links",
+        "summary": "Config Shared Links",
         "description": "Get the shared links for the user",
-        "operationId": "get_shared_links_config_shared_links_get",
+        "operationId": "config_select_shared_links",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -445,7 +505,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [],
@@ -459,7 +525,7 @@
         ],
         "summary": "Add Shared Link",
         "description": "Add a new shared link for the user",
-        "operationId": "add_shared_link_config_shared_links_post",
+        "operationId": "config_add_shared_link",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -476,7 +542,13 @@
         },
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -504,10 +576,16 @@
         ],
         "summary": "Delete Shared Link",
         "description": "Delete a shared link for the user",
-        "operationId": "delete_shared_link_config_shared_links__id__delete",
+        "operationId": "config_delete_shared_link",
         "security": [
           {
-            "APIKeyAuth": []
+            "APIKeyQuery": []
+          },
+          {
+            "APIKeyHeader": []
+          },
+          {
+            "APIKeyCookie": []
           }
         ],
         "parameters": [
@@ -886,9 +964,19 @@
     }
   },
   "securityDefinitions": {
-    "APIKeyAuth": {
+    "APIKeyQuery": {
+      "type": "apiKey",
+      "in": "query",
+      "name": "X-Access-Token"
+    },
+    "APIKeyHeader": {
       "type": "apiKey",
       "in": "header",
+      "name": "X-Access-Token"
+    },
+    "APIKeyCookie": {
+      "type": "apiKey",
+      "in": "cookie",
       "name": "X-Access-Token"
     }
   },
