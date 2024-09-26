@@ -5,6 +5,7 @@ import requests
 
 from libs import config
 from entities.base import SearchTerm, Task, TaskGroup
+import cache
 
 
 def parse_data(data, user, sharelink, key, type):
@@ -38,7 +39,7 @@ def parse_data(data, user, sharelink, key, type):
     return results
 
 
-def retrieve_all_data(searchItem: SearchTerm):
+def retrieve_all_data(searchItem: SearchTerm, environment: str):
     since_date = searchItem.changes_since
     if searchItem.changes_since is None:
         since_date = "2000-01-01T00:00:00Z"
@@ -51,7 +52,7 @@ def retrieve_all_data(searchItem: SearchTerm):
         "query": query,
     }
 
-    response = requests.post(config.SFG20_URL, json=body)
+    response = requests.post(config.SFG20_ENVS[environment], json=body)
     if response.status_code == 200:
         all_data = response.json()["data"]["regime"]["schedules"]
         schedules = []
@@ -105,7 +106,7 @@ def retrieve_all_data(searchItem: SearchTerm):
     return schedules
 
 
-def complete_task(task: Task):
+def complete_task(task: Task, environment: str):
     query = config.SFG20_QUERY_003.format(
         task.sharelink_id,
         task.access_token,
@@ -119,11 +120,11 @@ def complete_task(task: Task):
         "query": query,
     }
 
-    response = requests.post(config.SFG20_URL, json=body)
+    response = requests.post(config.SFG20_ENVS[environment], json=body)
     return response.json()
 
 
-def complete_task_group(task: TaskGroup):
+def complete_task_group(task: TaskGroup, environment: str):
     items = []
     for item in task.tasks_completed:
         record = config.SFG20_QUERY_003_ITEM.format(
@@ -149,5 +150,5 @@ def complete_task_group(task: TaskGroup):
         "query": query,
     }
 
-    response = requests.post(config.SFG20_URL, json=body)
+    response = requests.post(config.SFG20_ENVS[environment], json=body)
     return response.json()

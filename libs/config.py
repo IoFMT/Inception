@@ -11,8 +11,6 @@ SCOPE = None
 CLIENT_ID = None
 AUTHORITY = None
 CACHEFILE = None
-SFG20_ACCESS_TOKEN = None
-SFG20_SHARE_ID = None
 SFG20_URL = None
 
 # Load the environment variables
@@ -70,13 +68,14 @@ CACHE_SQL_CREATE = """CREATE TABLE IF NOT EXISTS public.sfg20_data (user_id TEXT
                                                             schedule_id TEXT, 
                                                             type TEXT, 
                                                             data TEXT)"""
+
 CACHE_SQL_DELETE = """DELETE FROM public.sfg20_data WHERE user_id = :p1 and sharelink_id = :p2 and schedule_id = :p3"""
 
 CACHE_SQL_INSERT = """INSERT INTO public.sfg20_data (user_id, sharelink_id, schedule_id, type, data) VALUES (:p1, :p2, :p3, :p4, :p5)"""
 
 CACHE_SQL_CLEAR = """DELETE FROM public.sfg20_data WHERE user = :p1"""
 
-CACHE_SQL_INSERT_CONFIG = """INSERT INTO public.config (api_key, customer_name, access_token) VALUES (:p1, :p2, :p3)"""
+CACHE_SQL_INSERT_CONFIG = """INSERT INTO public.config (api_key, customer_name, access_token, sfg_environment) VALUES (:p1, :p2, :p3, :p4)"""
 
 CACHE_SQL_DELETE_CONFIG = """DELETE FROM public.config WHERE api_key = :p1"""
 
@@ -104,20 +103,17 @@ if "DV_AUTH_BASE" in os.environ and "DV_TENANT_ID" in os.environ:
 if "DV_CACHE_FILE" in os.environ:
     CACHEFILE = os.environ.get("DV_CACHE_FILE")
 
-DV_SELECTED_TABLE = "cr17a_test_tbls"
-DV_SELECTED_FIELDS = ["cr17a_id", "cr17a_name"]
-
 # -------------------------------------------------
 # SFG20 GraphSQL Queries
 # -------------------------------------------------
-if "SFG20_ACCESS_TOKEN" in os.environ:
-    SFG20_ACCESS_TOKEN = os.environ.get("SFG20_ACCESS_TOKEN")
 
-if "SFG20_SHARE_ID" in os.environ:
-    SFG20_SHARE_ID = os.environ.get("SFG20_SHARE_ID")
+if "DEMO_SFG20_URL" in os.environ:
+    DEMO_SFG20_URL = os.environ.get("DEMO_SFG20_URL")
 
-if "SFG20_URL" in os.environ:
-    SFG20_URL = os.environ.get("SFG20_URL")
+if "PROD_SFG20_URL" in os.environ:
+    PROD_SFG20_URL = os.environ.get("PROD_SFG20_URL")
+
+SFG20_ENVS = {"DEMO": DEMO_SFG20_URL, "PROD": PROD_SFG20_URL}
 
 SFG20_QUERY_001 = """query ExampleQuery {{
   regime(shareLinkId: "{0}", accessToken: "{1}", changesSince: "{2}") {{
@@ -240,8 +236,6 @@ SFG20_QUERY_003_ITEM = """{{
   completedDateTime: "{2}"
 }}
 """
-
-SFG20_SHP_LIST = "https://graph.microsoft.com/v1.0/sites/{0}/lists/{1}/items"
 
 
 # -------------------------------------------------

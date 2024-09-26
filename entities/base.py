@@ -23,6 +23,9 @@ class Config(BaseModel):
         title="Access Token",
         description="The Access Token provided by SFG20",
     )
+    sfg_environment: str = Field(
+        title="SFG Environment", description="The SFG20 environment"
+    )
 
 
 class SharedLinks(BaseModel):

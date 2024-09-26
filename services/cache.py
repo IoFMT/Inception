@@ -108,7 +108,12 @@ def add_config(data: Config):
     db = get_db()
 
     stmt = text(config.CACHE_SQL_INSERT_CONFIG)
-    stmt = stmt.bindparams(p1=data.api_key, p2=data.customer_name, p3=data.access_token)
+    stmt = stmt.bindparams(
+        p1=data.api_key,
+        p2=data.customer_name,
+        p3=data.access_token,
+        p4=data.sfg_environment,
+    )
     db.execute(stmt)
     db.commit()
 
@@ -126,10 +131,12 @@ def select_config(api_key):
 
     stmt = None
     if api_key == "all":
-        stmt = text("SELECT api_key, customer_name, access_token FROM config")
+        stmt = text(
+            "SELECT api_key, customer_name, access_token, sfg_environment FROM config"
+        )
     else:
         stmt = text(
-            "SELECT api_key, customer_name, access_token FROM config WHERE api_key = :p1"
+            "SELECT api_key, customer_name, access_token, sfg_environment FROM config WHERE api_key = :p1"
         )
         stmt = stmt.bindparams(p1=api_key)
 
@@ -138,7 +145,12 @@ def select_config(api_key):
     results = []
     for res in result:
         results.append(
-            {"api_key": res[0], "customer_name": res[1], "access_token": res[2]}
+            {
+                "api_key": res[0],
+                "customer_name": res[1],
+                "access_token": res[2],
+                "sfg_environment": res[3],
+            }
         )
 
     return results
@@ -178,3 +190,14 @@ def add_shared_links(data):
     stmt = stmt.bindparams(p1=data.api_key, p2=data.id, p3=data.link_name, p4=data.url)
     db.execute(stmt)
     db.commit()
+
+
+def get_environment(api_key):
+    db = get_db()
+    stmt = text(
+        "SELECT api_key, customer_name, access_token, sfg_environment FROM config WHERE api_key = :p1"
+    )
+    stmt = stmt.bindparams(p1=api_key)
+
+    result = db.execute(stmt).fetchone()
+    return result[3]

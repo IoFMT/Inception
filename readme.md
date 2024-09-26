@@ -7,7 +7,8 @@ This repository contains a REST API built with FastAPI for the IoFMT project. Th
 
 * **FastAPI:** A modern, fast (high-performance), web framework for building APIs with Python 3.6+ based on standard Python type hints.
 * **Uvicorn:** An ASGI web server implementation for Python.
-* **Dataverse:** MS data repository.
+* **PostgreSQL:** A database for caching information.
+* **SFG20 GraphQL:** The GraphQL API for accessing SFG20 data.
 
 
 ## Requirements
@@ -50,18 +51,34 @@ DV_SCP_SUFFIX="user_impersonation"
 DV_CLIENT_SECRET="<SA CLIENT SECRET>"
 DV_CLIENT_SECRETID = "<SA CLIENT SECRET ID>"
 DV_CACHE_FILE = "services/cache/cache.bin"
+
+CACHE_DB_HOST="<PostgreSQL Host>"
+CACHE_DB_USER="<PostgreSQL user>"
+CACHE_DB_PWD="<PostgreSQL pwd>"
+
+ADMIN_USER = "<API admin user>"
+ADMIN_PWD = "<API admin pwd>"
+
+AZURE_CLIENT_ID="<AZURE CLIENT ID>"
+AZURE_TENANT_ID="<AZURE TENANT ID>"
+APPLICATION-OBJECT-ID="<APP SERVICE ID>"
+ASSIGNEE-OBJECT-ID="<ASSIGNEE OBJECT ID>"
+SUBSCRIPTION_ID="<SUBSCRIPTION ID>"
+
+DEMO_SFG20_URL="https://api.demo.facilities-iq.com/v3.0"
+PROD_SFG20_URL="https://api.facilities-iq.com/v3.0"
 ```
 
 2. Set up API Key:
-    * Using the generate_apikey.py generate a new API key
+    * Using the generate_apikey.py generate a new Master API key
     *  Save your encripted API key on the .env file. 
 
-3. Dataverse Integration:
-    * Create a service account on Azure Active Directory
-    * Add the service account to the Dataverse environment
-    * Save the service account credentials on the .env file
-    
-    <!-- TODO: Add more detailed instructions -->
+3. Create the PostgreSQL tables:
+
+Execute the scripts available at the data folder, in no particular order, using the connection information that you collect for the environment variables.
+
+
+4. Create the cache file:
 
 ## Running the API
 
@@ -89,13 +106,12 @@ Check the 2 guides below:
 
 ## Understanding the API
 
-### IOFMT REST API Documentation
-
-This document provides a technical overview of the IOFMT REST API, acting as a Facade for connecting to the SFG20 GraphAPI and maintaining a cache for improved performance.
+This document provides a technical overview of the IOFMT REST API.
 
 **API Specification:**
 
-The API is defined using the OpenAPI Specification (OAS) and can be accessed at `https://iofmtapi.azurewebsites.net/openapi.json`.
+The API is defined using the OpenAPI Specification (OAS) and can be accessed at `https://iofmtapi.azurewebsites.net/openapi.json`. This API definition is using OPENAPI 3.0.3.
+If you want a version using swagger 2, please open this file: [Swagger 2 Definition](connector/IoFMT-API.swagger.json)
 
 **Authentication:**
 

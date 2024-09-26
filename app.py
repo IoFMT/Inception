@@ -164,7 +164,8 @@ async def get_schedules(
     status = "OK"
     message = "Data retrieved successfully from SFG20 and cached in the API"
     try:
-        raw_data = sv_sfg20.retrieve_all_data(search)
+        environment = cache.get_environment(api_key)
+        raw_data = sv_sfg20.retrieve_all_data(search, environment)
         response = []
         for item in raw_data:
             cache.save_cache(item)
@@ -249,7 +250,8 @@ async def complete_task(
     status = "OK"
     message = "Task marked as completed in SFG20"
     try:
-        resp = sv_sfg20.complete_task(task)
+        environment = cache.get_environment(api_key)
+        resp = sv_sfg20.complete_task(task, environment)
         response = [resp]
     except Exception as e:
         status = "Error"
@@ -275,7 +277,8 @@ async def complete_task_group(
     status = "OK"
     message = "Task marked as completed in SFG20"
     try:
-        resp = sv_sfg20.complete_task_group(task)
+        environment = cache.get_environment(api_key)
+        resp = sv_sfg20.complete_task_group(task, environment)
         response = [resp]
     except Exception as e:
         status = "Error"

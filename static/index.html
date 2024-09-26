@@ -40,6 +40,15 @@
             </div>
           </div>
           <div class="field">
+            <label class="label">SFG20 Environment</label>
+            <div class="select">
+              <select id="environment" placeholder="Select your environment" required>
+                <option value="DEMO">Demonstration</option>
+                <option value="PROD">Production</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
             <button class="button is-primary" id="generate-api-key">Generate API Key</button>
           </div>
         </form>
@@ -52,6 +61,7 @@
               <th>API Key</th>
               <th>Customer Name</th>
               <th>Access Token</th>
+              <th>Environment</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -80,6 +90,7 @@
 
       const customerName = document.getElementById('customer-name').value;
       const accessToken = document.getElementById('access-token').value;
+      const environment = document.getElementById('environment').value;
 
       // Generate API key (replace with your actual key generation logic)
       const apiKey = `ak_${Math.random().toString(36).substring(2, 15)}`;
@@ -98,7 +109,8 @@
         body: JSON.stringify({
           api_key: apiKey,
           customer_name: customerName,
-          access_token: accessToken
+          access_token: accessToken,
+          sfg_environment: environment
         })
       });
 
@@ -138,6 +150,11 @@
           accessTokenCell.textContent = apiKey.access_token;
           row.appendChild(accessTokenCell);
 
+          const environmentCell = document.createElement('td');
+          environmentCell.textContent = apiKey.sfg_environment;
+          row.appendChild(environmentCell);
+
+
           const actionCell = document.createElement('td');
           const deleteButton = document.createElement('button');
           deleteButton.textContent = 'Delete';
@@ -146,11 +163,11 @@
             // Implement delete functionality
             var result = confirm("Want to delete?");
             if (result) {
-              fetch(`config/delete/${apiKey.api_key}`, {
-                method: 'GET',
+              fetch(`/config/delete/${apiKey.api_key}`, {
+                method: 'DELETE',
                 headers: {
                   'Content-Type': 'application/json',
-                  'X-Access-Token': apiKey.api_key
+                  'X-Access-Token': '{{master_api_key}}'
                 },
               }).then(() => {
                 renderApiKeyList();
