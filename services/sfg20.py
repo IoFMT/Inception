@@ -5,7 +5,6 @@ import requests
 
 from libs import config
 from entities.base import SearchTerm, Task, TaskGroup
-import cache
 
 
 def parse_data(data, user, sharelink, key, type):
