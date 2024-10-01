@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker
 
 
 from libs import config
-from entities.base import Config, CacheParameters, Entities
+from entities.base import Config, CacheParameters, Entities, SharedLinks
 
 engine = None
 SessionLocal = None
@@ -186,7 +186,16 @@ def delete_shared_links(api_key, id):
 def add_shared_links(data):
     db = get_db()
 
-    stmt = text(config.CACHE_SQL_INSERT__SHARED_LINKS)
+    stmt = text(config.CACHE_SQL_INSERT_SHARED_LINKS)
+    stmt = stmt.bindparams(p1=data.api_key, p2=data.id, p3=data.link_name, p4=data.url)
+    db.execute(stmt)
+    db.commit()
+
+
+def update_shared_links(data: SharedLinks):
+    db = get_db()
+
+    stmt = text(config.CACHE_SQL_UPDATE_SHARED_LINKS)
     stmt = stmt.bindparams(p1=data.api_key, p2=data.id, p3=data.link_name, p4=data.url)
     db.execute(stmt)
     db.commit()
@@ -201,3 +210,14 @@ def get_environment(api_key):
 
     result = db.execute(stmt).fetchone()
     return result[3]
+
+
+def exists_shared_link(api_key, id):
+    db = get_db()
+
+    stmt = text(
+        "SELECT count(1) as cnt FROM config_shared_links WHERE api_key = :p1 and id = :p2"
+    )
+    stmt = stmt.bindparams(p1=api_key, p2=id)
+    result = db.execute(stmt).fetchone()
+    return result[0] > 0

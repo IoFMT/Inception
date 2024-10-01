@@ -12,6 +12,9 @@ CLIENT_ID = None
 AUTHORITY = None
 CACHEFILE = None
 SFG20_URL = None
+THROTTLE_RATE = 100
+THROTTLE_RATE_EXT = 50
+THROTTLE_TIME = 60
 
 # Load the environment variables
 load_dotenv()
@@ -83,7 +86,10 @@ CACHE_SQL_DELETE_SHARED_LINKS = (
     """DELETE FROM config_shared_links WHERE api_key = :p1 and id = :p2"""
 )
 
-CACHE_SQL_INSERT__SHARED_LINKS = "INSERT INTO config_shared_links (api_key, id, link_name, url) VALUES (:p1, :p2, :p3, :p4)"
+CACHE_SQL_INSERT_SHARED_LINKS = "INSERT INTO config_shared_links (api_key, id, link_name, url) VALUES (:p1, :p2, :p3, :p4)"
+
+CACHE_SQL_UPDATE_SHARED_LINKS = "UPDATE config_shared_links SET link_name = :p3, url = :p4 WHERE api_key = :p1 AND id = :p2"
+
 
 # -------------------------------------------------
 # Dataverse Configuration
@@ -114,6 +120,11 @@ if "PROD_SFG20_URL" in os.environ:
     PROD_SFG20_URL = os.environ.get("PROD_SFG20_URL")
 
 SFG20_ENVS = {"DEMO": DEMO_SFG20_URL, "PROD": PROD_SFG20_URL}
+
+SFG20_SHLS = {
+    "DEMO": "https://www.demo.facilities-iq.com/app/facilities?share={0}",
+    "PROD": "https://www.facilities-iq.com/app/facilities?share={0}",
+}
 
 SFG20_QUERY_001 = """query ExampleQuery {{
   regime(shareLinkId: "{0}", accessToken: "{1}", changesSince: "{2}") {{
@@ -236,6 +247,12 @@ SFG20_QUERY_003_ITEM = """{{
   completedDateTime: "{2}"
 }}
 """
+
+SFG20_QUERY_004 = """query BatchRegimes {{
+  batchRegimes(shareLinkId: "{0}", accessToken: "{1}") {{
+    shareLinkId
+  }}
+}}"""
 
 
 # -------------------------------------------------

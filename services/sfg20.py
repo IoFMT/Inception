@@ -4,7 +4,7 @@ import json
 import requests
 
 from libs import config
-from entities.base import SearchTerm, Task, TaskGroup
+from entities.base import SearchTerm, Task, TaskGroup, ConfigSharedLinks
 
 
 def parse_data(data, user, sharelink, key, type):
@@ -106,7 +106,7 @@ def retrieve_all_data(searchItem: SearchTerm, environment: str):
 
 
 def complete_task(task: Task, environment: str):
-    query = config.SFG20_QUERY_003.format(
+    query = config.SFG20_QUERY_002.format(
         task.sharelink_id,
         task.access_token,
         task.asset_id,
@@ -119,6 +119,7 @@ def complete_task(task: Task, environment: str):
         "query": query,
     }
 
+    print(body)
     response = requests.post(config.SFG20_ENVS[environment], json=body)
     return response.json()
 
@@ -151,3 +152,31 @@ def complete_task_group(task: TaskGroup, environment: str):
 
     response = requests.post(config.SFG20_ENVS[environment], json=body)
     return response.json()
+
+
+def load_shared_links(searchItem: ConfigSharedLinks, api_key: str, environment: str):
+    links = []
+    query = config.SFG20_QUERY_004.format(
+        searchItem.sharelink_id, searchItem.access_token
+    )
+
+    body = {
+        "query": query,
+    }
+
+    response = requests.post(config.SFG20_ENVS[environment], json=body)
+    if response.status_code == 200:
+        all_data = response.json()["data"]["batchRegimes"]
+        for raw_data in all_data:
+            links.append(
+                {
+                    "api_key": api_key,
+                    "id": raw_data["shareLinkId"],
+                    "link_name": raw_data["shareLinkId"],
+                    "url": config.SFG20_SHLS[environment].format(
+                        raw_data["shareLinkId"]
+                    ),
+                }
+            )
+
+    return links

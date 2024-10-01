@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
   Generate a token for the dataverse api
+  THIS IS NOT BEING USED CURRENTLY, AS THE API 
+  DO NOT CONNECT WITH DATAVERSE ANYMORE
 """
 
 from services import dataverse as sv_dataverse

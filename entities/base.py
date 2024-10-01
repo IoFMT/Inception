@@ -145,3 +145,13 @@ class TaskGroup(BaseModel):
     tasks_completed: list[TaskGroupItem] = Field(
         title="Tasks Completed", description="The tasks completed"
     )
+
+
+class ConfigSharedLinks(BaseModel):
+    sharelink_id: str = Field(
+        title="Sharelink ID", description="The ID of the SFG20 sharelink"
+    )
+    access_token: str = Field(
+        title="Access Token",
+        description="The Access Token provided by SFG20",
+    )

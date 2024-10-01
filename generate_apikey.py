@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This script is used to generate an API key for the user.
+This script is used to generate the GLOBAL API KEY.
 """
 
 from libs import utils

@@ -2,6 +2,7 @@
 """
     Main file to run the API
 """
+from functools import wraps
 import secrets
 import traceback
 
@@ -19,7 +20,6 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
 
-
 from routers import security_router
 from entities.base import (
     Config,
@@ -29,6 +29,7 @@ from entities.base import (
     SearchTerm,
     Task,
     TaskGroup,
+    ConfigSharedLinks,
 )
 from services import sfg20 as sv_sfg20
 from services import cache
@@ -66,6 +67,33 @@ async def time_call(request: Request, call_next):
     return response
 
 
+def rate_limited(max_calls: int, time_frame: int):
+    """
+    :param max_calls: Maximum number of calls allowed in the specified time frame.
+    :param time_frame: The time frame (in seconds) for which the limit applies.
+    :return: Decorator function.
+    """
+
+    def decorator(func):
+        calls = []
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            now = time()
+            calls_in_time_frame = [call for call in calls if call > now - time_frame]
+            if len(calls_in_time_frame) >= max_calls:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Rate limit exceeded.",
+                )
+            calls.append(now)
+            return await func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
+
+
 # -------------------------------------------------
 # Customizing OpenAPI definition
 # We need to downgrade to 3.0.2 to be compatible
@@ -85,7 +113,7 @@ def custom_openapi():
         To generate the API KEY for a customer, please go to: <a href='/admin' target='_blank'>Admin</a>""",
         routes=app.routes,
         openapi_version="3.0.2",
-        tags=sv_sfg20.config.tags_metadata,
+        tags=config.tags_metadata,
     )
     openapi_schema["info"]["x-logo"] = {
         "url": "https://fastapi.tiangolo.com/img/logo-margin/logo-teal.png"
@@ -132,6 +160,7 @@ async def get_api_status() -> Any:
 
 
 @app.get("/admin", tags=["Basic"], response_class=HTMLResponse, include_in_schema=False)
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def admin(
     request: Request, username: Annotated[str, Depends(get_current_username)]
 ) -> Any:
@@ -155,6 +184,7 @@ async def admin(
     description="Search SFG20 schedules according to the parameters provided and load into the cache",
     operation_id="get_schedules",
 )
+@rate_limited(config.THROTTLE_RATE_EXT, config.THROTTLE_TIME)
 async def get_schedules(
     search: SearchTerm,
     api_key: security_router.APIKey = security_router.Depends(
@@ -177,55 +207,37 @@ async def get_schedules(
     return {"status": status, "message": message, "data": response}
 
 
-@app.get(
+@app.post(
     "/shared-links",
     tags=["SFG20"],
     response_model=Result,
     description="List the SFG20 shared links available for the user",
     operation_id="get_shared_links",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def get_shared_links(
+    item: ConfigSharedLinks,
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
     ),
 ) -> Any:
-    if encode(api_key) == config.GLOBAL_API_KEY:
-        url = "https://api.demo.facilities-iq.com/graphql?o=GetMyShareLinks"
+    environment = cache.get_environment(api_key)
+    raw_response = sv_sfg20.load_shared_links(item, api_key, environment)
+    data = []
+    for response in raw_response:
+        share = SharedLinks(**response)
+        if not cache.exists_shared_link(str(api_key), response["id"]):
+            cache.add_shared_links(share)
+        else:
+            cache.update_shared_links(share)
 
-        headers = {
-            "accept": "*/*",
-            "accept-language": "pt-BR,pt;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-            "clientid": "JiBG2T2dqSuh9B:sfg20/clients",
-            "content-type": "application/json",
-            "href": "https://www.demo.facilities-iq.com/app",
-            "instance": "kvhCEofyDSRF87",
-            "priority": "u=1, i",
-            "sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Microsoft Edge";v="128"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-site",
-            "cookie": "_ga=GA1.1.551238647.1726408191; _ga_ZESBZLG4GM=GS1.1.1726485952.3.1.1726486310.59.0.0; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IndhbHRlckBpb2ZtdG1zLmNvbSIsImlhdCI6MTcyNjQ4NjMxMCwiZXhwIjoxNzI3MDkxMTEwfQ.j9NPmWt9-QCb0KIoTwzMkfXAQHP4RihI-7ahCZJjA6g",
-            "Referer": "https://www.demo.facilities-iq.com/",
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-        }
-
-        payload = '[{"operationName":"GetMyShareLinks","variables":{"search":""},"query":"query GetMyShareLinks($search: String, $take: Int, $skip: Int) {  getMyShareLinks(skip: $skip, take: $take, search: $search) {    total    links {    name      url    }    outOfDateLinks    __typename  }}"}]'
-
-        response = requests.post(url, headers=headers, data=payload)
-        raw_data = response.json()[0]["data"]["getMyShareLinks"]["links"]
-        data = []
-        for item in raw_data:
-            record = {
-                "id": item["url"].split("=")[1],
-                "name": item["name"],
-                "url": item["url"],
+        data.append(
+            {
+                "id": response["id"],
+                "name": response["link_name"],
+                "url": response["url"],
             }
-            data.append(record)
-    else:
-        response = cache.select_shared_links(api_key)
-        data = response
+        )
 
     return {
         "status": "OK",
@@ -241,6 +253,7 @@ async def get_shared_links(
     description="Mark a task as completed in SFG20",
     operation_id="complete_task",
 )
+@rate_limited(config.THROTTLE_RATE_EXT, config.THROTTLE_TIME)
 async def complete_task(
     task: Task,
     api_key: security_router.APIKey = security_router.Depends(
@@ -268,6 +281,7 @@ async def complete_task(
     description="Mark a group of tasks as completed in SFG20",
     operation_id="complete_task_group",
 )
+@rate_limited(config.THROTTLE_RATE_EXT, config.THROTTLE_TIME)
 async def complete_task_group(
     task: TaskGroup,
     api_key: security_router.APIKey = security_router.Depends(
@@ -298,6 +312,7 @@ async def complete_task_group(
     description="List the data in the cache according to the parameters provided. When a parameter is ",
     operation_id="get_from_cache",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def get_from_cache(
     cacheParams: CacheParameters,
     api_key: security_router.APIKey = security_router.Depends(
@@ -322,6 +337,7 @@ async def get_from_cache(
     description="Delete all the data in the cache for the selected user",
     operation_id="delete_from_cache",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def delete_from_cache(
     user_id: str,
     api_key: security_router.APIKey = security_router.Depends(
@@ -350,6 +366,7 @@ async def delete_from_cache(
     description="Add a new configuration to the Config table",
     operation_id="config_add",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def config_add(
     data: Config,
     api_key: security_router.APIKey = security_router.Depends(
@@ -375,6 +392,7 @@ async def config_add(
     description="Delete the configuration from the Config table",
     operation_id="config_delete",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def config_delete(
     id: str,
     api_key: security_router.APIKey = security_router.Depends(
@@ -400,6 +418,7 @@ async def config_delete(
     description="Select a configuration from the Config table",
     operation_id="config_select",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def config_select(
     id: str,
     api_key: security_router.APIKey = security_router.Depends(
@@ -424,6 +443,7 @@ async def config_select(
     description="Delete the configuration from the Config table",
     operation_id="config_select_token",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def config_select_token(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -451,6 +471,7 @@ async def config_select_token(
     description="Get the shared links for the user",
     operation_id="config_select_shared_links",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def config_shared_links(
     api_key: security_router.APIKey = security_router.Depends(
         security_router.get_api_key
@@ -474,6 +495,7 @@ async def config_shared_links(
     description="Delete a shared link for the user",
     operation_id="config_delete_shared_link",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def delete_shared_link(
     id: str,
     api_key: security_router.APIKey = security_router.Depends(
@@ -499,6 +521,7 @@ async def delete_shared_link(
     description="Add a new shared link for the user",
     operation_id="config_add_shared_link",
 )
+@rate_limited(config.THROTTLE_RATE, config.THROTTLE_TIME)
 async def add_shared_link(
     data: SharedLinks,
     api_key: security_router.APIKey = security_router.Depends(
