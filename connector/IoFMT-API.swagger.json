@@ -1,7 +1,7 @@
 {
+  "swagger": "2.0",
   "info": {
     "title": "IoFMT REST API",
-    "summary": "This is a REST API for IoFMT Inception project",
     "description": "This REST API acts as a Facade for connecting to SFG20 GraphAPI and maintain a cache to expedite performance.\n        <br><br>\n        This API is also mapped in a Power Platform Custom Connector.\n        <br><br>\n        To generate the API KEY for a customer, please go to: <a href='/admin' target='_blank'>Admin</a>",
     "version": "1.0.0",
     "x-logo": {
@@ -574,7 +574,6 @@
       "description": "Endpoints to interact with the internal cache."
     }
   ],
-  "swagger": "2.0",
   "definitions": {
     "CacheParameters": {
       "properties": {
@@ -745,6 +744,16 @@
         "changes_since": {
           "title": "Changes Since",
           "description": "The date of changes since the last update"
+        },
+        "order_field": {
+          "type": "string",
+          "title": "Order Field",
+          "description": "The field to order the data by"
+        },
+        "order_direction": {
+          "type": "string",
+          "title": "Order Direction",
+          "description": "The direction to order the data by"
         }
       },
       "type": "object",
