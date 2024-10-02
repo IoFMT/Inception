@@ -49,6 +49,16 @@ class SearchTerm(BaseModel):
         title="Changes Since",
         description="The date of changes since the last update",
     )
+    order_field: str | None = Field(
+        None, title="Order Field", description="The field to order the data by"
+    )
+    order_direction: Literal["asc", "Asc", "ASC", "desc", "Desc", "DESC"] | None = (
+        Field(
+            None,
+            title="Order Direction",
+            description="The direction to order the data by",
+        )
+    )
 
 
 class Entities(str, Enum):

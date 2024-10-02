@@ -8,7 +8,7 @@ pytest
 pytest-mock
 pytest-cov
 typer
-psycopg2
+psycopg2-binary
 sqlalchemy
 requests
 jinja2

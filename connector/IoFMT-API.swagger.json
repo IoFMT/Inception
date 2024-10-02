@@ -54,13 +54,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -82,7 +76,7 @@
       }
     },
     "/shared-links": {
-      "get": {
+      "post": {
         "tags": [
           "SFG20"
         ],
@@ -95,20 +89,32 @@
             "schema": {
               "$ref": "#/definitions/Result"
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "schema": {
+              "$ref": "#/definitions/HTTPValidationError"
+            }
           }
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
-        "parameters": [],
+        "parameters": [
+          {
+            "required": true,
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/ConfigSharedLinks"
+            }
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
           "application/json"
         ]
@@ -138,13 +144,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -189,13 +189,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -226,13 +220,7 @@
         "operationId": "get_from_cache",
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "responses": {
@@ -275,13 +263,7 @@
         "operationId": "delete_from_cache",
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -335,13 +317,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -372,13 +348,7 @@
         "operationId": "config_delete",
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -418,13 +388,7 @@
         "operationId": "config_select",
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -472,13 +436,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [],
@@ -505,13 +463,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [],
@@ -542,13 +494,7 @@
         },
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -579,13 +525,7 @@
         "operationId": "config_delete_shared_link",
         "security": [
           {
-            "APIKeyQuery": []
-          },
-          {
-            "APIKeyHeader": []
-          },
-          {
-            "APIKeyCookie": []
+            "APIKeyAuth": []
           }
         ],
         "parameters": [
@@ -650,19 +590,23 @@
           "description": "The ID of the SFG20 sharelink"
         },
         "schedule_id": {
+          "type": "string",
           "title": "Schedule ID",
           "description": "The ID of the SFG20 schedule"
         },
         "type": {
+          "type": "string",
           "title": "Type",
           "description": "The type of the entity",
           "example": "schedules"
         },
         "order_field": {
+          "type": "string",
           "title": "Order Field",
           "description": "The field to order the data by"
         },
         "order_direction": {
+          "type": "string",
           "title": "Order Direction",
           "description": "The direction to order the data by"
         }
@@ -690,15 +634,41 @@
           "type": "string",
           "title": "Access Token",
           "description": "The Access Token provided by SFG20"
+        },
+        "sfg_environment": {
+          "type": "string",
+          "title": "SFG Environment",
+          "description": "The SFG20 environment"
         }
       },
       "type": "object",
       "required": [
         "api_key",
         "customer_name",
-        "access_token"
+        "access_token",
+        "sfg_environment"
       ],
       "title": "Config"
+    },
+    "ConfigSharedLinks": {
+      "properties": {
+        "sharelink_id": {
+          "type": "string",
+          "title": "Sharelink ID",
+          "description": "The ID of the SFG20 sharelink"
+        },
+        "access_token": {
+          "type": "string",
+          "title": "Access Token",
+          "description": "The Access Token provided by SFG20"
+        }
+      },
+      "type": "object",
+      "required": [
+        "sharelink_id",
+        "access_token"
+      ],
+      "title": "ConfigSharedLinks"
     },
     "Entities": {
       "type": "string",
@@ -964,19 +934,9 @@
     }
   },
   "securityDefinitions": {
-    "APIKeyQuery": {
-      "type": "apiKey",
-      "in": "query",
-      "name": "X-Access-Token"
-    },
-    "APIKeyHeader": {
+    "APIKeyAuth": {
       "type": "apiKey",
       "in": "header",
-      "name": "X-Access-Token"
-    },
-    "APIKeyCookie": {
-      "type": "apiKey",
-      "in": "cookie",
       "name": "X-Access-Token"
     }
   },

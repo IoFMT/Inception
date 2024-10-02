@@ -197,14 +197,29 @@ async def get_schedules(
         environment = cache.get_environment(api_key)
         raw_data = sv_sfg20.retrieve_all_data(search, environment)
         response = []
+
         for item in raw_data:
             cache.save_cache(item)
             response.append(item["schedule"][0])
+
+        responses = response
+        if len(response) > 0:
+            if search.order_field is not None:
+                if (
+                    search.order_direction is not None
+                    and search.order_direction == "desc"
+                ):
+                    responses = sorted(
+                        response, key=lambda x: x[search.order_field], reverse=True
+                    )
+                else:
+                    responses = sorted(response, key=lambda x: x[search.order_field])
+
     except Exception as e:
         status = "Error"
         message = "Error retrieving data from SFG20"
         response = [{"error": str(e)}]
-    return {"status": status, "message": message, "data": response}
+    return {"status": status, "message": message, "data": responses}
 
 
 @app.post(
