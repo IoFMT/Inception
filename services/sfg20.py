@@ -109,8 +109,8 @@ def complete_task(task: Task, environment: str):
     query = config.SFG20_QUERY_002.format(
         task.sharelink_id,
         task.access_token,
-        task.asset_id,
-        task.asset_index,
+        None,
+        0,
         task.task_id,
         task.completion_date,
     )
