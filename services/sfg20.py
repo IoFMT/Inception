@@ -46,7 +46,7 @@ def retrieve_all_data(searchItem: SearchTerm, environment: str):
     query = config.SFG20_QUERY_001.format(
         searchItem.sharelink_id, searchItem.access_token, since_date
     )
-
+    # print(query)
     body = {
         "query": query,
     }

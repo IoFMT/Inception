@@ -38,8 +38,9 @@ if "CACHE_DB_PWD" in os.environ:
 # CACHE_DB = "data/cache.db"
 CACHE_DB = f"postgresql://{CACHE_DB_USER}:{CACHE_DB_PWD}@{CACHE_DB_HOST}/postgres"
 
+# "modified" on schedules
 CACHE_DB_FIELDS = {
-    "schedules": ["id", "code", "title", "rawTitle", "modified", "version"],
+    "schedules": ["id", "code", "title", "rawTitle", "version"],
     "skills": ["skill.CoreSkillingID", "skill.Skilling", "skill.SkillingCode"],
     "tasks": [
         "id",
@@ -137,7 +138,7 @@ SFG20_QUERY_001 = """query ExampleQuery {{
         title
         rawTitle
         rawWhere
-        modified
+        
         version
         scheduleCategories
         retired
@@ -198,7 +199,7 @@ SFG20_QUERY_001 = """query ExampleQuery {{
           ... on APIFrequency {{
             label
             countSchedules
-            countAssets
+            
             countTasks
             intervalInHours
           }}
@@ -208,6 +209,8 @@ SFG20_QUERY_001 = """query ExampleQuery {{
   }}
 }}
 """
+## countAssets on frequencies
+## modified on schedules
 
 SFG20_QUERY_002 = """mutation CompleteSharedTask {{
   completeSharedTask(
