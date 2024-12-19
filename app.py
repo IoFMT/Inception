@@ -192,10 +192,12 @@ async def get_schedules(
     ),
 ) -> Any:
     status = "OK"
-    message = "Data retrieved successfully from SFG20 and cached in the API"
+    message = "No Data retrieved successfully from SFG20. No data cached."
+    responses = []
     try:
         environment = cache.get_environment(api_key)
         raw_data = sv_sfg20.retrieve_all_data(search, environment)
+
         response = []
 
         for item in raw_data:
@@ -214,11 +216,12 @@ async def get_schedules(
                     )
                 else:
                     responses = sorted(response, key=lambda x: x[search.order_field])
-
+            message = "Data retrieved successfully from SFG20 and cached in the API"
     except Exception as e:
         status = "Error"
         message = "Error retrieving data from SFG20"
-        response = [{"error": str(e)}]
+        responses = [{"error": str(e)}]
+        print(traceback.format_exc())
     return {"status": status, "message": message, "data": responses}
 
 

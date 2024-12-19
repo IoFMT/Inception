@@ -53,6 +53,10 @@ def retrieve_all_data(searchItem: SearchTerm, environment: str):
 
     response = requests.post(config.SFG20_ENVS[environment], json=body)
     if response.status_code == 200:
+        raw_data = response.json()
+        if "errors" in raw_data:
+            return []
+
         all_data = response.json()["data"]["regime"]["schedules"]
         schedules = []
         for raw_data in all_data:
@@ -101,7 +105,6 @@ def retrieve_all_data(searchItem: SearchTerm, environment: str):
                 ),
             )
             schedules.append(content)
-
     return schedules
 
 
